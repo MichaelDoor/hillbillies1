@@ -102,7 +102,7 @@ public class UnitTest {
 	
 	@Test (expected = IllegalArgumentException.class)
 	public void moveToAdjacent_IllegalAdjacent() throws Exception {
-		tester.moveToAdjacent(new PositionVector(1,1,0));
+		tester.moveToAdjacent(new PositionVector(1,2,0));
 	}
 	
 	@Test (expected = IllegalStateException.class)
@@ -116,16 +116,34 @@ public class UnitTest {
 		assertEquals(1.5,tester.getBaseSpeed(),0.00001);
 	}
 	
-	@Test (expected = IllegalStateException.class)
-	public void startRest_IllegalState() throws Exception{
-		tester.attack(target);
-		tester.rest();
-	}
-	
 	@Test
 	public void startWork_LegalCase() throws Exception {
 		tester.work();
 		assertEquals(tester.getActivityStatus(),"work");
+	}
+	
+	@Test
+	public void work_LegalCase() {
+		tester.work();
+		double i = 500/tester.getStrength();
+		while(i > 0){
+			tester.advanceTime(0.1);
+			i = i-0.1;
+		}
+		assertEquals((tester.getActivityStatus()).equals("default"), true);
+	}
+	
+	@Test
+	public void rest_LegalCase() {
+		tester.rest();
+		assertEquals((tester.getActivityStatus().equals("rest")),true);
+		assertEquals(tester.getMinRestCounter(),0.2/(tester.getToughness()/200),0.000001);
+	}
+	
+	@Test (expected = IllegalStateException.class)
+	public void startRest_IllegalState() throws Exception{
+		tester.attack(target);
+		tester.rest();
 	}
 	
 	@Test
@@ -141,9 +159,15 @@ public class UnitTest {
 		tester.advanceTime(0.19);
 		tester.advanceTime(0.19);
 		tester.advanceTime(0.19);
-		tester.advanceTime(0.19);
-		PositionVector position = tester.getUnitPosition();
 		assertEquals(tester.getUnitPosition().equals(new PositionVector(2.5, 1.5, 1.5)),true);
 	}
 	
+	@Test
+	public void calDistance_LegalCase() {
+		PositionVector position1 = new PositionVector(0, 0, 0);
+		PositionVector position2 = new PositionVector(1, 1, 1);
+		double distance = Unit.calcDistance(position1, position2);
+		assertEquals(distance,Math.sqrt(3),0.00001);
+	}
+	//move to (1,0,0) doesn't work
 }

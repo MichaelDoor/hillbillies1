@@ -1,5 +1,4 @@
 package hillbillies.model;
-
 import java.util.*;
 import be.kuleuven.cs.som.annotate.*;
 
@@ -208,9 +207,8 @@ public class Unit {
 		this.setAutRestCounter(0);
 		this.setDefaultBehaviour(false);
 	}
-	
-	
-	
+
+
 	/**
 	 * Return the unitPosition of this unit.
 	 */
@@ -825,10 +823,11 @@ public class Unit {
 				this.advanceTime(restingTime);
 			}
 		}
-		else if ((status == "move") || (this.getUnitPosition() != this.getNextPosition()) || 
-				(this.getUnitPosition() != this.getDestination())) {
+		else if ((status == "move") || ((this.getActivityStatus() == "default") && ((!(this.getUnitPosition()).equals(this.getNextPosition()))
+				|| (!(this.getUnitPosition()).equals(this.getDestination()))))) {
 				if (this.getUnitPosition() == this.getDestination()){
 					this.setActivityStatus("default");
+					this.advanceTime(time);
 				}
 				else {
 					if (this.getUnitPosition() == this.getNextPosition()) {
@@ -846,7 +845,6 @@ public class Unit {
 		else if (status == "rest") {
 			this.doRest(time);
 		}
-		this.increaseAutRestCounter(time);
 	}
 	
 	/**
@@ -947,9 +945,9 @@ public class Unit {
 		int unitY = this.getCubePosition()[1];
 		int unitZ = this.getCubePosition()[2];
 		int[] difference = {Math.abs(unitX-positionX), Math.abs(unitY-positionY), Math.abs(unitZ-positionZ)};
-		if (((difference[0] == 1) && (difference[1] == 0) && (difference[2] == 0))
-			|| ((difference[0] == 0) && (difference[1] == 1) && (difference[2] == 0))
-				|| ((difference[0] == 0) && (difference[1] == 0) && (difference[2] == 1))) {
+		if (((difference[0] == -1) || (difference[0] == 0) || (difference[0] == 1))
+				&& ((difference[1] == -1) || (difference[1] == 0) || (difference[1] == 1))
+				&& ((difference[2] == -1) || (difference[2] == 0) || (difference[2] == 1))){
 			return true;
 		}
 		return false;
@@ -963,6 +961,8 @@ public class Unit {
 	 * 			|						this.getUnitPosition(),centrePosition(PositionVector.sum(this.getUnitPosition(), position))))
 	 * @effect	The next position of this unit is set by using the given position.
 	 * 			| this.setNextPosition(centrePosition(PositionVector.sum(this.getUnitPosition(), position)))
+	 * @effect	If the given position is the final destination of this unit, than this unit's destination is set to the given position.
+	 * 			| this.setDestination(this.getNextPosition());
 	 * @throws	IllegalArgumentException
 	 * 			The the sum of the given position and the unit's current position is out of bounds.
 	 * 			| ! isValidUnitPosition(PositionVector.sum(this.getUnitPosition(),position))
@@ -989,25 +989,32 @@ public class Unit {
 			this.setCurrentVelocity(velocity);
 			this.setNextPosition(destination);	
 		}
+		if(this.getUnitPosition().equals(this.getDestination())){
+			this.setDestination(this.getNextPosition());
+		}
 	}
 	
 	
 	
 	/**
 	 * Calculates the distance between two positions.
-	 * @param position1	The first position.
-	 * @param position2	The second position.
+	 * @param position	The first position.
+	 * @param target	The second position.
 	 * @return	The distance between the two given positions, calculated with the mathematical formula for distance.
 	 * 			| result == Math.sqrt(Math.pow(2,calcDifferenceVector(position1, position2).getXArgument()) 
 	 * 			| 									+ Math.pow(2,calcDifferenceVector(position1, position2).getYArgument())
 	 * 			| 											 + Math.pow(2,calcDifferenceVector(position1, position2).getZArgument()))
 	 */
-	public static double calcDistance(PositionVector position1, PositionVector position2) {
-		PositionVector difference = calcDifferenceVector(position1, position2);
+	public static double calcDistance(PositionVector position, PositionVector target) {
+		PositionVector difference = calcDifferenceVector(position, target);
 		double xDifference = difference.getXArgument();
 		double yDiffference = difference.getYArgument();
 		double zDifference = difference.getZArgument();
-		return Math.sqrt(Math.pow(2,xDifference) + Math.pow(2, yDiffference) + Math.pow(2, zDifference));
+		double xSquare = Math.pow(xDifference,2);
+		double ySquare = Math.pow(yDiffference,2);
+		double zSquare = Math.pow(zDifference,2);
+		double distance = Math.sqrt(xSquare+ySquare+zSquare);
+		return distance;
 	}
 	
 	/**
@@ -1033,15 +1040,15 @@ public class Unit {
 	
 	/**
 	 * Calculates the difference vector between to given positions.
-	 * @param position1	The first position.
-	 * @param position2	The second position.
+	 * @param position	The first position.
+	 * @param target	The second position.
 	 * @return 	A vector with the argument differences of the given position vectors as its arguments.
 	 * 			| result == new PositionVector (position1.getXArgument()-position2.getXArgument(), position1.getYArgument()-position2.getYArgument(), 
 	 *			|						position1.getZArgument()-position2.getZArgument())
 	 */
-	private static PositionVector calcDifferenceVector(PositionVector position1, PositionVector position2) {
-		return (new PositionVector (position1.getXArgument()-position2.getXArgument(), position1.getYArgument()-position2.getYArgument(), 
-				position1.getZArgument()-position2.getZArgument()));
+	private static PositionVector calcDifferenceVector(PositionVector position, PositionVector target) {
+		return (new PositionVector (position.getXArgument()-target.getXArgument(), position.getYArgument()-target.getYArgument(), 
+				position.getZArgument()-target.getZArgument()));
 	}
 	
 	
@@ -1396,6 +1403,8 @@ public class Unit {
 			}
 		}
 		else {
+			//PositionVector displacement = PositionVector.multiplyBy(dt, this.getCurrentVelocity());
+			//PositionVector newPosition = PositionVector.sum(this.getUnitPosition(), displacement);
 			this.setUnitPosition(PositionVector.sum(this.getUnitPosition(), PositionVector.multiplyBy(dt, this.getCurrentVelocity())));
 		}
 		this.increaseAutRestCounter(dt);
@@ -1527,10 +1536,11 @@ public class Unit {
 	 * 			| if (time == this.getWorkTime()) {
 	 * 			| 	this.setWorkTime(0)
 	 * 			| 	this.setActivityStatus("default")}
-	 * @effect	This unit's work time is depleted and time advances if there's time left.
+	 * @effect	This unit's work time is depleted and time advances if there's time left, activity status is set to default.
 	 * 			| if (this.getWorkTime() < time) {
 	 * 			| 	double restingTime = time - this.getWorkTime()
 	 * 			| 	this.setWorkTime(0)
+	 * 			| 	this.setActivityStatus("default")
 	 * 			| 	this.advanceTime(restingTime)}
 	 * @effect	The automatic rest counter is increased with the given amount of time.
 	 * 			| this.increaseAutRestCounter(time)
@@ -1539,6 +1549,7 @@ public class Unit {
 		if (this.getWorkTime() < time) {
 			 double restingTime = time - this.getWorkTime();
 			 this.setWorkTime(0);
+			 this.setActivityStatus("default");
 			 this.advanceTime(restingTime);
 		}
 		if (time == this.getWorkTime()) {
@@ -1967,7 +1978,7 @@ public class Unit {
 	 * Return the minimum rest counter of this unit.
 	 */
 	@Basic @Raw
-	private double getMinRestCounter() {
+	public double getMinRestCounter() {
 		return this.minRestCounter;
 	}
 	
