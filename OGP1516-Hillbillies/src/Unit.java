@@ -69,7 +69,7 @@ import be.kuleuven.cs.som.annotate.*;
  *         unit.
  *       | isValidAutRestCounter(getAutRestCounter())
  * @author Michaël Dooreman
- * @version	0.12
+ * @version	0.13
  */
 public class Unit {
 	
@@ -178,7 +178,7 @@ public class Unit {
 													throws IllegalArgumentException {
 		if((! isValidInitialAtt(strength)) || (! isValidInitialAtt(agility)) || 
 				(! isValidInitialAtt(toughness)) || (! isValidInitialAtt(weight)) || (! isValidName(name)) 
-					|| (!isValidUnitPosition(position))) {
+					|| (!isValidUnitPosition(position)) || (!(weight >= ((strength+agility)/2)))) {
 			throw new IllegalArgumentException();
 		}
 		this.setUnitPosition(position);
@@ -206,9 +206,8 @@ public class Unit {
 		this.setAutRestCounter(0);
 		this.setDefaultBehaviour(false);
 	}
-	
-	
-	
+
+
 	/**
 	 * Return the unitPosition of this unit.
 	 */
@@ -287,12 +286,14 @@ public class Unit {
 	 *  
 	 * @param  name
 	 *         The name to check.
-	 * @return 
-	 *       | result == ((name.length() >= 2) && (name.charAt(0).isWhiteSpace()) && (validCharInName(name))
-	 *       |								&& (Character.isUpperCase(name.charAt(0))))
+	 * @return	True if and only if, the name is longer than 2 character, starts with an uppercase letter and only contains valid
+	 * 			characters.
+	 *       | result == ((name.length() >= 2) && (Character.isLetter(name.charAt(0))) && (Character.isUpperCase(name.charAt(0)))
+	 *       | 																								&& (validCharInName(name))
 	*/
 	private static boolean isValidName(String name) {
-		return ((name.length() >= 2) && (validCharInName(name)));
+		return ((name.length() >= 2) && (Character.isLetter(name.charAt(0))) && (Character.isUpperCase(name.charAt(0)))
+				&& (validCharInName(name)));
 	}
 	
 	private static boolean validCharInName(String name) {
@@ -382,7 +383,10 @@ public class Unit {
 	 *       | result == ((weight >= 1) && (weight <= 200) && (weight >= ((this.getStrength()+this.getAgility())/2)))
 	*/
 	private boolean isValidWeight(int weight) {
-		return ((weight >= 1) && (weight <= 200) && (weight >= ((this.getStrength()+this.getAgility())/2)));
+		int strength = this.getStrength();
+		int agility = this.getAgility();
+		int minBorder = (int) ((strength + agility)/2.0);
+		return ((weight >= 1) && (weight <= 200) && (weight >= minBorder));
 	}
 	
 	/**
@@ -396,7 +400,6 @@ public class Unit {
 	 *       | if (isValidWeight(weight))
 	 *       |   then new.getWeight() == weight
 	 */
-	@Raw
 	public void setWeight(int weight) {
 		if (isValidWeight(weight))
 			this.weight = weight;
@@ -891,10 +894,10 @@ public class Unit {
 	/**
 	 * Return the base speed of this unit.
 	 * @return	The base speed of this unit calculated with a formula using the strength, agility and weight of this unit.
-	 * 			| result == 1.5*(this.getStrength() + this.getAgility())/(200*(this.getWeight()/100))
+	 * 			| result == 1.5*(this.getStrength() + this.getAgility())/(200*(this.getWeight()/100.0))
 	 */
-	private double getBaseSpeed() {
-		return (1.5*(this.getStrength() + this.getAgility())/(200*(this.getWeight()/100)));
+	public double getBaseSpeed() {
+		return (1.5*(this.getStrength() + this.getAgility())/(200*(this.getWeight()/100.0)));
 	}
 	
 	/**
@@ -953,8 +956,8 @@ public class Unit {
 	 * Let's this unit move to the centre of the adjacent cube of which a position in it is given, if the unit is not already moving.
 	 * @param position	A combination of an x,y, and z unit PositionVector.
 	 * @effect	The current velocity of this unit is set by using the given position.
-	 * 			| this.setCurrentVelocity(calcVelocity(this.calcWalkingSpeed(position), this.getUnitPosition(),
-	 * 			|	 							centrePosition(PositionVector.sum(this.getUnitPosition(), position))))
+	 * 			| this.setCurrentVelocity(calcVelocity(this.calcWalkingSpeed(PositionVector.sum(this.getUnitPosition(),position)),
+	 * 			|						this.getUnitPosition(),centrePosition(PositionVector.sum(this.getUnitPosition(), position))))
 	 * @effect	The next position of this unit is set by using the given position.
 	 * 			| this.setNextPosition(centrePosition(PositionVector.sum(this.getUnitPosition(), position)))
 	 * @throws	IllegalArgumentException
@@ -963,22 +966,23 @@ public class Unit {
 	 * @throws	IllegalArgumentException
 	 * 			The sum of the given position and the unit's current position is not in an adjacent cube.
 	 * 			| ! isValidAdjacent(PositionVector.sum(this.getUnitPosition(),position))
-	 * @throws	ModelException
-	 * 			This unit is already moving.
-	 * 			| this.getActivityStatus() == "move"
+	 * @throws	IllegalStateException
+	 * 			This unit is already moving to an adjacent cube
+	 * 			| (this.getActivityStatus() == "move") &&(! this.getUnitPosition().equals(this.getNextPosition()))
 	 */
-	public void moveToAdjacent(PositionVector position) throws IllegalArgumentException {
+	public void moveToAdjacent(PositionVector position) throws IllegalArgumentException, IllegalStateException {
 		if((!isValidUnitPosition(PositionVector.sum(this.getUnitPosition(),position))) || 
 							(!isValidAdjacent(PositionVector.sum(this.getUnitPosition(),position)))) {
 			throw new IllegalArgumentException();
 		}
-		if(this.getActivityStatus() == "move") {
-			throw new IllegalAccessError();
+		if((this.getActivityStatus() == "move") && (! this.getUnitPosition().equals(this.getNextPosition()))) {
+			throw new IllegalStateException();
 		}
 		if(this.getActivityStatus() != "move") {
 			this.setActivityStatus("move");
 			PositionVector destination = centrePosition(PositionVector.sum(this.getUnitPosition(), position));
-			PositionVector velocity = calcVelocity(this.calcWalkingSpeed(position), this.getUnitPosition(), destination);
+			PositionVector velocity = calcVelocity(this.calcWalkingSpeed(PositionVector.sum(this.getUnitPosition(),position)),
+					destination, this.getUnitPosition());
 			this.setCurrentVelocity(velocity);
 			this.setNextPosition(destination);	
 		}
@@ -1004,21 +1008,21 @@ public class Unit {
 	}
 	
 	/**
-	 * Calculates the velocity for a given speed and 2 positions.
+	 * Calculates the velocity for a given speed, the target position vector and the start position vector.
 	 * @param speed	The speed.
-	 * @param position1	The first position.
-	 * @param position2	The second position.
+	 * @param targetPosition	The first position.
+	 * @param startPosition	The second position.
 	 * @return	The velocity vector for the given speed.
 	 * 			| result == new PositionVector(speed*calcDifferenceVector(position1, position2).getXArgument()/calcDistance(position1,position2),
 	 * 			|					speed*calcDifferenceVector(position1, position2).getYArgument()/calcDistance(position1,position2),
 	 * 			|							speed*calcDifferenceVector(position1, position2).getZArgument()/calcDistance(position1,position2))
 	 */
-	private static PositionVector calcVelocity(double speed, PositionVector position1, PositionVector position2) {
-		PositionVector difference = calcDifferenceVector(position1, position2);
+	private static PositionVector calcVelocity(double speed, PositionVector targetPosition, PositionVector startPosition) {
+		PositionVector difference = calcDifferenceVector(targetPosition, startPosition);
 		double xDifference = difference.getXArgument();
 		double yDifference = difference.getYArgument();
 		double zDifference = difference.getZArgument();
-		double distance = calcDistance(position1, position2);
+		double distance = calcDistance(targetPosition, startPosition);
 		return (new PositionVector(speed*xDifference/distance, speed*yDifference/distance, speed*zDifference/distance));
 	}
 	
@@ -1161,7 +1165,7 @@ public class Unit {
 	 * Return the targeted adjacent position of this unit.
 	 */
 	@Basic @Raw
-	private PositionVector getNextPosition() {
+	public PositionVector getNextPosition() {
 		return this.nextPosition;
 	}
 	
@@ -1185,7 +1189,8 @@ public class Unit {
 	 *         The new targeted adjacent position for this unit.
 	 * @post   The targeted adjacent position of this new unit is equal to
 	 *         the given targeted adjacent position.
-	 *       | new.getNextPosition() == nextPosition
+	 *       | new.getNextPosition() == new PositionVector(nextPosition.getXArgument(), nextPosition.getYArgument(),
+	 *       | 																					 nextPosition.getZArgument())
 	 * @throws IllegalArgumentException
 	 *         The given targeted adjacent position is not a valid targeted adjacent position for any
 	 *         unit.
@@ -1197,7 +1202,7 @@ public class Unit {
 		if (! isValidNextPosition(nextPosition)) {
 			throw new IllegalArgumentException();
 		}
-		this.nextPosition = nextPosition;
+		this.nextPosition = new PositionVector(nextPosition.getXArgument(), nextPosition.getYArgument(), nextPosition.getZArgument());
 	}
 	
 	/**
@@ -1366,7 +1371,8 @@ public class Unit {
 	 * @effect	This unit covered a distance by moving at it's speed times multiplier for the given time.
 	 * 			| this.setUnitPosition(PositionVector.sum(this.getUnitPosition(), PositionVector.multiplyBy(dt, this.getCurrentVelocity())))
 	 * @effect	This unit has reached it's next position if time was sufficient to reach it.
-	 * 			| this.setUnitPosition(this.getNextPosition())
+	 * 			| this.setUnitPosition(new PositionVector(this.getNextPosition().getXArgument(),this.getNextPosition().getYArgument(),
+				|	this.getNextPosition().getZArgument())))
 	 * @effect	In case the unit has time left after reaching it's next position, time advances.
 	 * 			| this.advanceTime(restingTime)
 	 * @effect	The automatic rest counter is increased with the given amount of time.
@@ -1378,20 +1384,24 @@ public class Unit {
 		double travelTime = distance/speed;
 		this.setOrientation( Math.atan2(this.getCurrentVelocity().getYArgument(), this.getCurrentVelocity().getXArgument()));
 		if (travelTime <= dt) {
-			this.setUnitPosition(this.getNextPosition());
+			this.setUnitPosition(new PositionVector(this.getNextPosition().getXArgument(),this.getNextPosition().getYArgument(),
+					this.getNextPosition().getZArgument()));
+			this.setActivityStatus("default");
 			double restingTime = dt-travelTime;
 			if (restingTime > 0) {
 				this.advanceTime(restingTime);
 			}
 		}
 		else {
+			PositionVector displacement = PositionVector.multiplyBy(dt, this.getCurrentVelocity());
+			PositionVector newPosition = PositionVector.sum(this.getUnitPosition(), displacement);
 			this.setUnitPosition(PositionVector.sum(this.getUnitPosition(), PositionVector.multiplyBy(dt, this.getCurrentVelocity())));
 		}
 		this.increaseAutRestCounter(dt);
 	}
 	
 	/**
-	 * Return the decimal stamina of this unit.
+	 * Return the double type stamina of this unit.
 	 */
 	@Basic
 	private double getDoubleStamina() {
