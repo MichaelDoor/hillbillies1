@@ -134,19 +134,6 @@ public class UnitTest {
 	}
 	
 	@Test
-	public void rest_LegalCase() {
-		tester.rest();
-		assertEquals((tester.getActivityStatus().equals("rest")),true);
-		assertEquals(tester.getMinRestCounter(),0.2/(tester.getToughness()/200),0.000001);
-	}
-	
-	@Test (expected = IllegalStateException.class)
-	public void startRest_IllegalState() throws Exception{
-		tester.attack(target);
-		tester.rest();
-	}
-	
-	@Test
 	public void advanceTime_LegalMoveToAdjacent() {
 		tester.moveToAdjacent(new PositionVector(1, 0, 0));
 		tester.advanceTime(0.19);
@@ -210,5 +197,44 @@ public class UnitTest {
 		PositionVector position2 = new PositionVector(1, 1, 1);
 		double distance = Unit.calcDistance(position1, position2);
 		assertEquals(distance,Math.sqrt(3),0.00001);
+	}
+	
+	@Test
+	public void rest_LegalCase() {
+		tester.rest();
+		assertEquals((tester.getActivityStatus().equals("rest")),true);
+		assertEquals(tester.getMinRestCounter(),0.2/(tester.getToughness()/200.0),0.000001);
+	}
+	
+	@Test (expected = IllegalStateException.class)
+	public void startRest_IllegalState() throws Exception{
+		tester.attack(target);
+		tester.rest();
+	}
+	@Test
+	public void sprintTime_LegalCase() {
+		double time1 = tester.getSprintTime(50);
+		double time2 = tester.getSprintTime(20);
+		double time3 = tester.getSprintTime(15);
+		assertEquals(time1,20,0.0000001);
+		assertEquals(time2,20,0.0000001);
+		assertEquals(time3,15,0.0000001);
+	}
+	
+	@Test
+	public void advanceTime_LegalRestForStam() {
+		PositionVector destination = new PositionVector(25, 25, 25);
+		tester.setSprint(true);
+		tester.moveTo(destination);
+		while(!(tester.getUnitPosition().equals(tester.getDestination()))) {
+		tester.advanceTime(0.19);
+		}
+		double stamina = tester.getCurrentStamina();
+		tester.rest();
+		while(tester.getCurrentStamina() != tester.getMaxStamina()) {
+			tester.advanceTime(0.19);
+		}
+		stamina = tester.getCurrentStamina();
+		assertEquals(tester.getCurrentStamina(),tester.getMaxStamina());
 	}
 }

@@ -141,8 +141,8 @@ public class Unit {
 	 *         the given activityStatus.
 	 *       | this.setActivityStatus(activityStatus)
 	 * @effect The current velocity of this new unit is set to
-	 *         the given current velocity.
-	 *       | this.setCurrentVelocity(currentVelocity)
+	 *         the the zero vector.
+	 *       | this.setCurrentVelocity(new PositionVector(0, 0, 0))
 	 * @effect The targeted adjacent position of this new unit is set to it's current position.
 	 *       | this.setNextPosition(new PositionVector(this.getUnitPosition().getXArgument(),this.getUnitPosition().getYArgument(),
 			 |	this.getUnitPosition().getZArgument()));
@@ -195,7 +195,7 @@ public class Unit {
 		this.setDoubleStamina(this.getMaxStamina());
 		this.setOrientation(Math.PI/2.0);
 		this.setActivityStatus("default");
-		this.setCurrentVelocity(null);
+		this.setCurrentVelocity(new PositionVector(0, 0, 0));
 		this.setNextPosition(new PositionVector(this.getUnitPosition().getXArgument(),this.getUnitPosition().getYArgument(),
 				this.getUnitPosition().getZArgument()));
 		this.setDestination(new PositionVector(this.getUnitPosition().getXArgument(),this.getUnitPosition().getYArgument(),
@@ -808,7 +808,7 @@ public class Unit {
 		}
 		String status = this.getActivityStatus();
 		if ((status == "default") && (this.getDefaultBehaviour() == true) && ((this.getUnitPosition()).equals(this.getNextPosition())
-				|| (this.getUnitPosition()).equals(this.getDestination()))){
+				&& (this.getUnitPosition()).equals(this.getDestination()))){
 			this.randomBehaviour();
 			status = this.getActivityStatus();
 		}
@@ -829,6 +829,7 @@ public class Unit {
 				|| (!(this.getUnitPosition()).equals(this.getDestination()))))) {
 				if (this.getUnitPosition().equals(this.getDestination())){
 					this.setActivityStatus("default");
+					this.setCurrentVelocity(new PositionVector(0, 0, 0));
 					this.advanceTime(time);
 				}
 				else {
@@ -1129,11 +1130,15 @@ public class Unit {
 	
 	
 	/**
-	 * Return the current velocity of this unit.
+	 * Return the current velocity of this unit, according to it's sprint status.
 	 */
-	@Basic @Raw
 	public PositionVector getCurrentVelocity() {
-		return this.currentVelocity;
+		if(this.getSprint() == true){
+			return PositionVector.multiplyBy(2, this.currentVelocity);
+		}
+		else{
+			return this.currentVelocity;
+		}
 	}
 	
 	/**
@@ -1291,9 +1296,15 @@ public class Unit {
 	 * @post   The sprinting status of this new unit is equal to
 	 *         the given sprinting status.
 	 *       | new.getSprint() == sprintStatus
+	 * @throws	IllegalStateException
+	 * 			This unit has no stamina left and is trying to turn on sprint mode.
+	 * 			| (this.getCurrentStamina() == 0)
 	 */
 	@Raw
-	public void setSprint(boolean sprintStatus) {
+	public void setSprint(boolean sprintStatus) throws IllegalStateException {
+		if((this.getCurrentStamina() == 0) && (sprintStatus == true)) {
+			throw new IllegalStateException("0 stamina!");
+		}
 		this.sprintStatus = sprintStatus;
 	}
 	
@@ -1344,8 +1355,14 @@ public class Unit {
 	 * @return	The amount of time this unit is able to sprint.
 	 * 			| result ==  (this.getCurrentStam()*0.1) %(time + 0.00001)
 	 */
-	private double getSprintTime(double time){
-		return ((this.getCurrentStamina()*0.1) %(time + 0.0001));	
+	public double getSprintTime(double time){
+		double availableSprint = (this.getCurrentStamina()*0.1);
+		if(availableSprint >= time){
+			return time;
+		}
+		else {
+			return availableSprint;
+		}
 	}
 	
 	/**
@@ -1388,6 +1405,8 @@ public class Unit {
 	 * @effect	This unit has reached it's next position if time was sufficient to reach it.
 	 * 			| this.setUnitPosition(new PositionVector(this.getNextPosition().getXArgument(),this.getNextPosition().getYArgument(),
 				|	this.getNextPosition().getZArgument())))
+				| 	this.setActivityStatus("default");
+				| 	this.setCurrentVelocity(new PositionVector(0, 0, 0));
 	 * @effect	In case the unit has time left after reaching it's next position, time advances.
 	 * 			| this.advanceTime(restingTime)
 	 * @effect	The automatic rest counter is increased with the given amount of time.
@@ -1402,6 +1421,7 @@ public class Unit {
 			this.setUnitPosition(new PositionVector(this.getNextPosition().getXArgument(),this.getNextPosition().getYArgument(),
 					this.getNextPosition().getZArgument()));
 			this.setActivityStatus("default");
+			this.setCurrentVelocity(new PositionVector(0, 0, 0));
 			double restingTime = dt-travelTime;
 			if (restingTime > 0) {
 				this.advanceTime(restingTime);
@@ -1444,15 +1464,15 @@ public class Unit {
 	 *         unit.
 	 *       | isValidDoubleStamina(doubleStamina)
 	 * @effect   The double type stamina of this unit is equal to the given
-	 *         double type stamina.
+	 *         	 double type stamina and the stamina is set to the rounded up integer version of the double type stamina.
 	 *       | new.getDoubleStamina() == doubleStamina
-	 *       | this.setCurrentStamina((int) doubleStamina)
+	 *       | this.setCurrentStamina((int) (Math.ceil(doubleStamina)))
 	 */
 
 	private void setDoubleStamina(double doubleStamina) {
 		assert isValidDoubleStamina(doubleStamina);
 		this.doubleStamina = doubleStamina;
-		this.setCurrentStamina((int) doubleStamina);
+		this.setCurrentStamina((int) (Math.ceil(doubleStamina)));
 	}
 	
 	/**
@@ -1802,6 +1822,8 @@ public class Unit {
 	 * 			| this.setActivityStatus("rest")
 	 * @effect	This unit's minimum rest counter is reset.
 	 * 			| this.resetMinRestCounter()
+	 * @effect	The automatic rest counter is reset.
+	 * 			| this.resetAutRestCounter()
 	 * @throws	IllegalModelException
 	 * 			The unit is in combat or is moving to an adjacent cube.
 	 * 			| (this.getActivityStatus() == "attack") || ( (this.getActivityStatus() == "move") &&
@@ -1814,7 +1836,7 @@ public class Unit {
 		}
 		this.setActivityStatus("rest");
 		this.resetMinRestCounter();
-		
+		this.resetAutRestCounter();
 	}
 	/**
 	 * Makes this unit rest for a given amount of time, resulting in recovering hitpoints and then stamina when all hitpoints 
@@ -1848,16 +1870,15 @@ public class Unit {
 			throw new IllegalArgumentException();
 		}
 		
-		double t = this.recoverHP(time);
-		this.decreaseMinRestCounter(time);
-		if(t > 0){
-			t = this.recoverStamina(t);
-			if(t > 0){
+		double leftoverTime1 = this.recoverHP(time);
+		this.decreaseMinRestCounter(time-leftoverTime1);
+		if(leftoverTime1 > 0){
+			double leftoverTime2 = this.recoverStamina(leftoverTime1);
+			if(leftoverTime2 > 0){
 				this.setActivityStatus("default");
-				this.advanceTime(t);
+				this.advanceTime(leftoverTime2);
 			}
 		}
-		this.increaseAutRestCounter(time);
 	}
 	
 	/**
@@ -1926,14 +1947,14 @@ public class Unit {
 	 *         unit.
 	 *       | isValidDoubleHP(doubleHP)
 	 * @effect   The double type hitpoints and current hitpoints of this unit are respectively equal to the given
-	 *         double type hitpoints and it's integer form.
+	 *         double type hitpoints and it's integer form rounded up.
 	 *       | new.getDoubleHP() == doubleHP
-	 *       | this.setDoubleHP(doubleHP)
+	 *       | this.setDoubleHP((int) (Math.ceil(doubleHP)))
 	 */
 	private void setDoubleHP(double doubleHP) {
 		assert isValidDoubleHP(doubleHP);
 		this.doubleHP = doubleHP;
-		this.setCurrentHP((int) doubleHP);
+		this.setCurrentHP((int) (Math.ceil(doubleHP)));
 	}
 	
 	/**
@@ -1968,7 +1989,7 @@ public class Unit {
 		if(this.getMaxStamina() == this.getCurrentStamina()) {
 			return time;
 			}
-		double recoveryRate = (this.getToughness()/100)/0.2;
+		double recoveryRate = (this.getToughness()/100.0)/0.2;
 		double neededTime = (this.getMaxStamina() - this.getDoubleStamina())/recoveryRate;
 		if(neededTime <= time) {
 			this.setDoubleStamina(this.getMaxStamina()); 
@@ -1997,7 +2018,7 @@ public class Unit {
 	 *       | result == minRestCounter <= 0.2/(this.getToughness()/200)) || (minRestCounter >= 0)
 	*/
 	private boolean isValidMinRestCounter(double minRestCounter) {
-		return ((minRestCounter <= 0.2/(this.getToughness()/200)) || (minRestCounter >= 0));
+		return ((minRestCounter <= 0.2/(this.getToughness()/200.0)) || (minRestCounter >= 0));
 	}
 	
 	/**
@@ -2026,7 +2047,7 @@ public class Unit {
 	 * 			| this.setMinRestCounter(0.2/(this.getToughness()/200))
 	 */
 	private void resetMinRestCounter() {
-		this.setMinRestCounter(0.2/(this.getToughness()/200));
+		this.setMinRestCounter(0.2/(this.getToughness()/200.0));
 	}
 	
 	/**
