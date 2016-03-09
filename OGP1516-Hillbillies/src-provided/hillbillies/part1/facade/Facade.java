@@ -200,7 +200,7 @@ public class Facade implements IFacade{
 			unit.moveTo((new PositionVector(cube[0], cube[1], cube[2])));
 		}
 		catch (IllegalArgumentException exc){
-			throw new ModelException();
+			throw new ModelException("Move problem");
 		}
 	}
 
@@ -222,7 +222,7 @@ public class Facade implements IFacade{
 			defender.defend(attacker);
 		}
 		catch (IllegalStateException exc){
-			throw new ModelException();
+			throw new ModelException("fight problem");
 		}
 	}
 
@@ -237,7 +237,7 @@ public class Facade implements IFacade{
 			unit.rest();
 		}
 		catch (IllegalStateException exc){
-			throw new ModelException();
+			throw new ModelException("rest problem");
 		}
 		
 	}

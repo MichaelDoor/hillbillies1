@@ -81,8 +81,18 @@ public class UnitTest {
 	
 	@Test
 	public void startRest_LegalCase() throws Exception {
+		tester.setSprint(true);
+		tester.moveToAdjacent(new PositionVector(1, 1, 1));
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
 		tester.rest();
 		assertEquals(tester.getActivityStatus(),"rest");	
+		assertEquals(tester.getMinRestCounter(),0.2/(tester.getToughness()/200.0),0.000001);
 	}
 	
 	@Test
@@ -200,18 +210,6 @@ public class UnitTest {
 	}
 	
 	@Test
-	public void rest_LegalCase() {
-		tester.rest();
-		assertEquals((tester.getActivityStatus().equals("rest")),true);
-		assertEquals(tester.getMinRestCounter(),0.2/(tester.getToughness()/200.0),0.000001);
-	}
-	
-	@Test (expected = IllegalStateException.class)
-	public void startRest_IllegalState() throws Exception{
-		tester.attack(target);
-		tester.rest();
-	}
-	@Test
 	public void sprintTime_LegalCase() {
 		double time1 = tester.getSprintTime(50);
 		double time2 = tester.getSprintTime(20);
@@ -219,6 +217,35 @@ public class UnitTest {
 		assertEquals(time1,20,0.0000001);
 		assertEquals(time2,20,0.0000001);
 		assertEquals(time3,15,0.0000001);
+	}
+	
+	
+	@Test
+	public void attack_LegalCase() {
+		tester.attack(target);
+		assertEquals(tester.getActivityStatus().equals("attack"),true);
+	}
+	
+	@Test (expected = IllegalStateException.class)
+	public void attack_IllegalCase() {
+		tester.attack(target);
+		tester.attack(target);
+	}
+	
+	@Test
+	public void defend_LegalCase() {
+		int i = 0;
+		while(i <= 1000){
+		PositionVector targetPosition = target.getUnitPosition();
+		double hp = target.getCurrentHP();
+		target.defend(tester);
+		boolean dodge = (target.isValidAdjacent(Unit.calcDifferenceVector(target.getUnitPosition(),targetPosition))
+				&& !(target.getUnitPosition().equals(targetPosition)));
+		boolean block = (target.getCurrentHP() == hp) && (target.getUnitPosition().equals(targetPosition));
+		boolean damage = (hp - tester.getStrength() == target.getCurrentHP());
+		assertEquals((dodge || block || damage), true);
+		i++;
+		}
 	}
 	
 	@Test
@@ -229,12 +256,55 @@ public class UnitTest {
 		while(!(tester.getUnitPosition().equals(tester.getDestination()))) {
 		tester.advanceTime(0.19);
 		}
-		double stamina = tester.getCurrentStamina();
 		tester.rest();
 		while(tester.getCurrentStamina() != tester.getMaxStamina()) {
 			tester.advanceTime(0.19);
 		}
-		stamina = tester.getCurrentStamina();
 		assertEquals(tester.getCurrentStamina(),tester.getMaxStamina());
 	}
+	
+	@Test
+	public void advanceTime_LegalRestForHP() {
+		while(target.getCurrentHP() == target.getMaxHP()){
+			if(!(tester.getUnitPosition().equals(target.getUnitPosition()))) {
+				tester.moveTo(target.getUnitPosition());
+				while((tester.getUnitPosition().equals(target.getUnitPosition())) == false){
+					tester.advanceTime(0.19);
+				}
+			}
+			tester.attack(target);
+			target.defend(tester);
+			double i = 0;
+			while (i <= 1) {
+				tester.advanceTime(0.1);
+				target.advanceTime(0.1);
+				i = i + 0.1;
+			}
+		}
+		target.rest();
+		while(target.getCurrentHP() < target.getMaxHP()){
+			target.advanceTime(0.19);
+		}
+		assertEquals(target.getCurrentHP(), target.getMaxHP());
+		
+	}
+	
+	@Test
+	public void autoRest_LegalCase() {
+		PositionVector destination = new PositionVector(25, 25, 25);
+		double time = 0;
+		tester.setSprint(true);
+		tester.moveTo(destination);
+		while(!(tester.getUnitPosition().equals(tester.getDestination()))) {
+		tester.advanceTime(0.19);
+		time = time + 0.19;
+		}
+		while(time < 180){
+			tester.advanceTime(0.19);
+			time = time + 0.19;
+		}
+		assertEquals(tester.getActivityStatus().equals("rest"),true);
+	}
+	
+	// change actions to defensive
 }

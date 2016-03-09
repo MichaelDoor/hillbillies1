@@ -806,25 +806,31 @@ public class Unit {
 			throw new IllegalArgumentException();
 		}
 		String status = this.getActivityStatus();
-		if ((status == "default") && (this.getDefaultBehaviour() == true) && ((this.getUnitPosition()).equals(this.getNextPosition())
-				&& (this.getUnitPosition()).equals(this.getDestination()))){
+		if ((status.equals("default") && (this.getDefaultBehaviour() == true) && ((this.getUnitPosition()).equals(this.getNextPosition())
+				&& (this.getUnitPosition()).equals(this.getDestination())))){
 			this.randomBehaviour();
-			status = this.getActivityStatus();
-		}
-		if (status == "attack") {
-			this.doAttack(time);
-		}
-		if (this.getMinRestCounter() != 0){
-			if (time < this.getMinRestCounter()){
-				this.doRest(time);
+			status = this.getActivityStatus(); 
 			}
-			else {
-				double restingTime = time - this.getMinRestCounter();
-				this.doRest(this.getMinRestCounter());
-				this.advanceTime(restingTime);
+		else if (status.equals("attack")) {
+				this.doAttack(time);
+			}
+		else if (this.getMinRestCounter() != 0){
+				if (time < this.getMinRestCounter()){
+					this.doRest(time);
+				}
+				else {
+					double restingTime = time - this.getMinRestCounter();
+					this.doRest(this.getMinRestCounter());
+					this.advanceTime(restingTime);
+				}
+			}
+		else if((this.getAutRestCounter() >= 180)) {
+			this.rest();
+			if(this.getActivityStatus().equals("rest")) {
+				this.resetAutRestCounter();
 			}
 		}
-		else if ((status == "move") || ((this.getActivityStatus() == "default") && ((!(this.getUnitPosition()).equals(this.getNextPosition()))
+		else if ((status.equals("move")) || ((this.getActivityStatus().equals("default")) && ((!(this.getUnitPosition()).equals(this.getNextPosition()))
 				|| (!(this.getUnitPosition()).equals(this.getDestination()))))) {
 				if (this.getUnitPosition().equals(this.getDestination())){
 					this.setActivityStatus("default");
@@ -841,11 +847,14 @@ public class Unit {
 					}
 				}
 			}
-		else if (status == "work") {
+		else if (status.equals("work")) {
 			this.doWork(time);
 			}
-		else if (status == "rest") {
+		else if (status.equals("rest")) {
 			this.doRest(time);
+		}
+		else if(status.equals("default")) {
+			this.increaseAutRestCounter(time);
 		}
 	}
 	
@@ -939,7 +948,7 @@ public class Unit {
 				|	|| (((Math.abs(this.getCubePosition()[0] - (int) position.getXArgument()) == 0) && (Math.abs(this.getCubePosition()[1] - (int) position.getYArgument()) == 1) && (Math.abs(this.getCubePosition()[2] - (int) position.getZArgument()) == 0))
 				|		|| (((Math.abs(this.getCubePosition()[0] - (int) position.getXArgument()) == 0) && (Math.abs(this.getCubePosition()[1] - (int) position.getYArgument()) == 0) && (Math.abs(this.getCubePosition()[2] - (int) position.getZArgument()) == 1)))
 	 */
-	private boolean isValidAdjacent(PositionVector position) {
+	public boolean isValidAdjacent(PositionVector position) {
 		int positionX = (int) position.getXArgument();
 		int positionY = (int) position.getYArgument();
 		int positionZ = (int) position.getZArgument();
@@ -1051,7 +1060,7 @@ public class Unit {
 	 * 			| result == new PositionVector (position1.getXArgument()-position2.getXArgument(), position1.getYArgument()-position2.getYArgument(), 
 	 *			|						position1.getZArgument()-position2.getZArgument())
 	 */
-	private static PositionVector calcDifferenceVector(PositionVector position, PositionVector target) {
+	public static PositionVector calcDifferenceVector(PositionVector position, PositionVector target) {
 		return (new PositionVector (position.getXArgument()-target.getXArgument(), position.getYArgument()-target.getYArgument(), 
 				position.getZArgument()-target.getZArgument()));
 	}
@@ -1455,7 +1464,8 @@ public class Unit {
 	}
 	
 	/**
-	 * Set the double type stamina and current stamina of this unit to respectively the given double type stamina and it's integer form.
+	 * Set the double type stamina and current stamina of this unit to respectively the given double type stamina 
+	 * and it's integer form (rounded up).
 	 * 
 	 * @param  doubleStamina
 	 *         The new decimal stamina for this unit.
@@ -1599,9 +1609,12 @@ public class Unit {
 	 * @effect	This unit's orientation is updated to face it's target.
 	 * 			| this.setOrientation(Math.atan2((target.getUnitPosition().getYArgument() - this.getUnitPosition().getYArgument()),
 	 * 			| 	target.getUnitPosition().getXArgument() - this.getUnitPosition().getXArgument()))
+	 * @throws	IllegalStateException
+	 * 			This unit is already attacking.
+	 * 			| (this.getActivityStatus().equals("attack"))
 	 */
 	public void attack(Unit target) throws IllegalStateException {
-		if ((this.getActivityStatus() != "attack") && (this.getActivityStatus() != "defend")) {
+		if ((this.getActivityStatus().equals("attack"))) {
 			throw new IllegalStateException();
 		}
 		this.setMinRestCounter(0);
@@ -1638,7 +1651,7 @@ public class Unit {
 			 this.setActivityStatus("default");
 			 this.advanceTime(restingTime);
 			 }
-		if (this.getAttackTime() == time) {
+		else if (this.getAttackTime() == time) {
 			 this.setAttackTime(0);
 			 this.setActivityStatus("default");
 		}
@@ -1801,14 +1814,14 @@ public class Unit {
 	 * Decrease this unit's hitpoints with a given amount until it has no hitpoints left.
 	 * @param amount	The given amount of hitpoints.
 	 * @pre 	The given amount has to be smaller then or equals to this Unit's hitpoints.
-	 * 			| amount <= this.getCurrentHP()
+	 * 			| amount <= this.getDoubleHP()
 	 * @effect	This unit's hitpoints are set to the difference of it's old hitpoints and the given amount.
-	 * 			| this.setCurrentHP(this.getCurrentHP() - amount)
+	 * 			| this.setDoubleHP(this.getDoubleHP() - amount)
 	 */
 	private void decreaseHP(int amount) {
 		assert (amount <= this.getCurrentHP());
 		
-		this.setCurrentHP(this.getCurrentHP() - amount);
+		this.setDoubleHP(this.getDoubleHP() - amount);
 	}
 	
 	// moveToAdjacent ALWAYS has first priority before doing anything else
@@ -1817,6 +1830,7 @@ public class Unit {
 	
 	/**
 	 * Command this unit to rest.
+	 * @effect	Does nothing if this unit is fully rested.
 	 * @effect	This unit's activity status is set to 'rest'.
 	 * 			| this.setActivityStatus("rest")
 	 * @effect	This unit's minimum rest counter is reset.
@@ -1829,13 +1843,13 @@ public class Unit {
 	 * 			|														this.getUnitPosition() != this.getNextPosition())
 	 */
 	public void rest() throws IllegalStateException{
-		if((this.getActivityStatus() == "attack") || ( (this.getActivityStatus() == "move") &&
-				this.getUnitPosition() != this.getNextPosition())) {
-			throw new IllegalStateException("Busy");
+		if(!(this.getActivityStatus() == "attack")){
+			if((this.getDoubleHP() != this.getMaxHP()) || (this.getDoubleStamina() != this.getMaxStamina())){
+				this.setActivityStatus("rest");
+				this.resetMinRestCounter();
+				this.resetAutRestCounter();
+			}
 		}
-		this.setActivityStatus("rest");
-		this.resetMinRestCounter();
-		this.resetAutRestCounter();
 	}
 	/**
 	 * Makes this unit rest for a given amount of time, resulting in recovering hitpoints and then stamina when all hitpoints 
@@ -1868,11 +1882,15 @@ public class Unit {
 		if(time < 0){
 			throw new IllegalArgumentException();
 		}
-		
 		double leftoverTime1 = this.recoverHP(time);
-		this.decreaseMinRestCounter(time-leftoverTime1);
+		if(this.getMinRestCounter() != 0){
+			this.decreaseMinRestCounter(time-leftoverTime1);
+		}
 		if(leftoverTime1 > 0){
 			double leftoverTime2 = this.recoverStamina(leftoverTime1);
+			if(this.getMinRestCounter() != 0){
+			this.decreaseMinRestCounter(leftoverTime1-leftoverTime2);
+			}
 			if(leftoverTime2 > 0){
 				this.setActivityStatus("default");
 				this.advanceTime(leftoverTime2);
@@ -1884,10 +1902,10 @@ public class Unit {
 	 * Regenerate this unit's hitpoints for a given amount of time and give back the unused time.
 	 * @param time	The given amount of time.
 	 * @return	The unused time.
-	 * 			| if(this.getMaxHP() == this.getCurrentHP()) {
+	 * 			| if(this.getMaxHP() == this.getDoubleHP()) {
 	 * 			|		result == time
 	 *			|		}
-	 *			| double recoveryRate = (this.getToughness()/200)/0.2
+	 *			| double recoveryRate = (this.getToughness()/200.0)/0.2
 	 *			| double neededTime = (this.getMaxHP() - this.getCurrentDoubleHP())/recoveryRate
 	 *			| if(neededTime <= time) {
 	 *			|	this.setCurrentDoubleHP(this.getMaxHP())
@@ -1903,10 +1921,10 @@ public class Unit {
 		if(time < 0){
 			throw new IllegalArgumentException();
 		}
-		if(this.getMaxHP() == this.getCurrentHP()) {
+		if(this.getMaxHP() == this.getDoubleHP()) {
 			return time;
 			}
-		double recoveryRate = (this.getToughness()/200)/0.2;
+		double recoveryRate = (this.getToughness()/200.0)/0.2;
 		double neededTime = (this.getMaxHP() - this.getDoubleHP())/recoveryRate;
 		if(neededTime <= time) {
 			this.setDoubleHP(this.getMaxHP()); 
@@ -1938,7 +1956,8 @@ public class Unit {
 	}
 	
 	/**
-	 * Set the double type hitpoints and also the current hitpoints of this unit to the given double type hitpoints.
+	 * Set the double type hitpoints and also the current hitpoints of this unit respectively to the given double type hitpoints and
+	 * the integer amount (rounded up) of the given double type hitpoints.
 	 * 
 	 * @param  doubleHP
 	 *         The new double type hitpoints for this unit.
@@ -1966,7 +1985,7 @@ public class Unit {
 	 * Regenerate this unit's stamina for a given amount of time and give back the unused time.
 	 * @param time	The given amount of time.
 	 * @return	The unused time.
-	 * 			| if(this.getMaxStamina() == this.getCurrentStamina()) {
+	 * 			| if(this.getMaxStamina() == this.getDoubleStamina()) {
 	 * 			|		result == time
 	 *			|		}
 	 *			| double recoveryRate = (this.getToughness()/100)/0.2
@@ -1985,7 +2004,7 @@ public class Unit {
 		if(time < 0){
 			throw new IllegalArgumentException();
 		}
-		if(this.getMaxStamina() == this.getCurrentStamina()) {
+		if(this.getMaxStamina() == this.getDoubleStamina()) {
 			return time;
 			}
 		double recoveryRate = (this.getToughness()/100.0)/0.2;
@@ -2115,8 +2134,9 @@ public class Unit {
 	@Raw
 	private void setAutRestCounter(double autRestCounter) 
 			throws IllegalArgumentException {
-		if (! isValidAutRestCounter(autRestCounter))
+		if (! isValidAutRestCounter(autRestCounter)) {
 			throw new IllegalArgumentException();
+		}
 		this.autRestCounter = autRestCounter;
 	}
 	
@@ -2147,10 +2167,6 @@ public class Unit {
 			throw new IllegalArgumentException();
 		}
 		this.setAutRestCounter(this.getAutRestCounter() + time);
-		if(this.getAutRestCounter() >= 180) {
-			this.resetAutRestCounter();
-			this.rest();
-		}
 	}
 	/**
 	 * Variable registering the automatic rest counter of this unit.
@@ -2213,9 +2229,9 @@ public class Unit {
 	 */
 	private void randomBehaviour() throws IllegalArgumentException{
 		Random generator = new Random();
-		int action = generator.nextInt(2);
+		int action = generator.nextInt(3);
 		if (action == 0){
-			int sprint = generator.nextInt(1);
+			int sprint = generator.nextInt(2);
 			this.moveTo(new PositionVector(generator.nextDouble()*49.99, generator.nextDouble()*49.99, generator.nextDouble()*49.99));
 			this.setSprint(sprint == 1);
 		}
