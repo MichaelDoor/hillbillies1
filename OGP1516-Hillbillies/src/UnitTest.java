@@ -33,7 +33,7 @@ public class UnitTest {
 	@Test
 	public void constructor_LegalCase() throws Exception {
 		Unit man = new Unit(new PositionVector(1.0,1.0,1.0), "Ikke", 50, 51, 52, 55);
-		assertEquals((man.getUnitPosition()).equals((new PositionVector(1.0,1.0,1.0))), true);
+		assertEquals((man.getUnitPosition()).equals((new PositionVector(1.5,1.5,1.5))), true);
 		assertEquals(((man.getName()).equals("Ikke")), true);
 		assertEquals(man.getStrength(),50);
 		assertEquals(man.getAgility(),51);
@@ -163,11 +163,52 @@ public class UnitTest {
 	}
 	
 	@Test
+	public void moveTo_LegalCase() {
+		PositionVector destination = new PositionVector(3, 1.5, 1.5);
+		tester.moveTo(destination);
+		PositionVector unitDestination = tester.getDestination();
+		PositionVector unitNextPosition = tester.getNextPosition();
+		assertEquals(unitDestination.equals(new PositionVector(3.5,1.5,1.5)), true);
+		assertEquals(unitNextPosition.equals(new PositionVector(2.5,1.5,1.5)), true);
+	}
+	
+	@Test
+	public void advanceTime_LegalMoveTo() {
+		PositionVector destination = new PositionVector(3, 1.5, 1.5);
+		tester.moveTo(destination);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		tester.advanceTime(0.19);
+		PositionVector unitDestination = tester.getDestination();
+		PositionVector unitNextPosition = tester.getNextPosition();
+		PositionVector unitPosition = tester.getUnitPosition();
+		assertEquals(unitDestination.equals(new PositionVector(3.5,1.5,1.5)), true);
+		assertEquals(unitNextPosition.equals(new PositionVector(3.5,1.5,1.5)), true);
+		assertEquals(unitPosition.equals(new PositionVector(3.5,1.5,1.5)), true);
+	}
+	
+	@Test
 	public void calDistance_LegalCase() {
 		PositionVector position1 = new PositionVector(0, 0, 0);
 		PositionVector position2 = new PositionVector(1, 1, 1);
 		double distance = Unit.calcDistance(position1, position2);
 		assertEquals(distance,Math.sqrt(3),0.00001);
 	}
-	//move to (1,0,0) doesn't work
 }

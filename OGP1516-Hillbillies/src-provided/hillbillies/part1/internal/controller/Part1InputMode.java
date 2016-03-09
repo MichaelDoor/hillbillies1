@@ -54,6 +54,10 @@ public class Part1InputMode extends DefaultInputMode {
 			getActionExecutor().moveToAdjacent(0, 0, getZ(e));
 			e.consume();
 			break;
+		case K:
+			getActionExecutor().moveToAdjacent(+1, 0, getZ(e));
+			e.consume();
+			break;
 		case B:
 			getActionExecutor().moveToAdjacent(-1, 1, getZ(e));
 			e.consume();

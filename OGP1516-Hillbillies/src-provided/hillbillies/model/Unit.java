@@ -2,6 +2,7 @@ package hillbillies.model;
 import java.util.*;
 import be.kuleuven.cs.som.annotate.*;
 
+//work out stats in total!
 /**
  * @invar  The unitPosition of each unit must be a valid unitPosition for any
  *         unit.
@@ -70,7 +71,7 @@ import be.kuleuven.cs.som.annotate.*;
  *         unit.
  *       | isValidAutRestCounter(getAutRestCounter())
  * @author Michaël Dooreman
- * @version	0.13
+ * @version	0.15
  */
 public class Unit {
 	
@@ -91,8 +92,8 @@ public class Unit {
 	 * 		    The weight for this new unit.
 	 * @pre    The given decimal stamina must be a valid decimal stamina for any unit.
 	 *       | isValidDoubleStamina(decimal stamina)
-	 * @post    The position of this new unit is equal to the given position.
-	 * 			| new.getUnitPosition() == position
+	 * @post    The position of this new unit is equal to the cube centre of the given position.
+	 * 			| new.getUnitPosition() == centrePosition(position)
 	 * @post    The name of this new unit equals the given name.
 	 * 			| new.getName() == name
 	 * @post    The strength of this new unit equals the given strength.
@@ -182,7 +183,7 @@ public class Unit {
 					|| (!isValidUnitPosition(position)) || (!(weight >= ((strength+agility)/2)))) {
 			throw new IllegalArgumentException();
 		}
-		this.setUnitPosition(position);
+		this.setUnitPosition(centrePosition(position));
 		this.setName(name);
 		this.setStrength(strength);
 		this.setAgility(agility);
@@ -806,7 +807,8 @@ public class Unit {
 			throw new IllegalArgumentException();
 		}
 		String status = this.getActivityStatus();
-		if ((status == "default") && (this.getDefaultBehaviour() == true)) {
+		if ((status == "default") && (this.getDefaultBehaviour() == true) && ((this.getUnitPosition()).equals(this.getNextPosition())
+				|| (this.getUnitPosition()).equals(this.getDestination()))){
 			this.randomBehaviour();
 			status = this.getActivityStatus();
 		}
@@ -825,12 +827,12 @@ public class Unit {
 		}
 		else if ((status == "move") || ((this.getActivityStatus() == "default") && ((!(this.getUnitPosition()).equals(this.getNextPosition()))
 				|| (!(this.getUnitPosition()).equals(this.getDestination()))))) {
-				if (this.getUnitPosition() == this.getDestination()){
+				if (this.getUnitPosition().equals(this.getDestination())){
 					this.setActivityStatus("default");
 					this.advanceTime(time);
 				}
 				else {
-					if (this.getUnitPosition() == this.getNextPosition()) {
+					if (this.getUnitPosition().equals(this.getNextPosition())) {
 						this.moveTo(this.getDestination());
 						this.move(time);
 						}
@@ -850,13 +852,13 @@ public class Unit {
 	/**
 	 * Gives this unit a given destination and determines which adjacent cube he has to move to start it's journey.
 	 * @param destination	The given destination.
-	 * @effect	The unit's destination is set to the given destination.
-	 * 			| this.setDestination(destination)
+	 * @effect	The unit's destination is set to the centre of the cube of the given destination.
+	 * 			| this.setDestination(centrePosition(destination))
 	 * @effect	Set this unit's next position to the adjacent cube he has to take on the path to it's destination.
 	 * 			| this.moveToAdjacent(adjacent)
 	 */
 	public void moveTo(PositionVector destination) throws IllegalArgumentException {
-		this.setDestination(destination);
+		this.setDestination(centrePosition(destination));
 		int[] adjacent = {0,0,0};
 		int[] destinationCube = {(int) destination.getXArgument(), (int) destination.getYArgument(), (int) destination.getZArgument()};
 		if (this.getCubePosition()[0] == destinationCube[0]) {
@@ -954,7 +956,8 @@ public class Unit {
 	}
 	
 	/**
-	 * Let's this unit move to the centre of the adjacent cube of which a position in it is given, if the unit is not already moving.
+	 * Let's this unit move to the centre of the adjacent cube of which a position in it is given, if the unit is not already moving
+	 * and the given position does not equal the unit's position.
 	 * @param position	A combination of an x,y, and z unit PositionVector.
 	 * @effect	The current velocity of this unit is set by using the given position.
 	 * 			| this.setCurrentVelocity(calcVelocity(this.calcWalkingSpeed(PositionVector.sum(this.getUnitPosition(),position)),
@@ -974,23 +977,25 @@ public class Unit {
 	 * 			| (this.getActivityStatus() == "move") &&(! this.getUnitPosition().equals(this.getNextPosition()))
 	 */
 	public void moveToAdjacent(PositionVector position) throws IllegalArgumentException, IllegalStateException {
-		if((!isValidUnitPosition(PositionVector.sum(this.getUnitPosition(),position))) || 
-							(!isValidAdjacent(PositionVector.sum(this.getUnitPosition(),position)))) {
-			throw new IllegalArgumentException();
-		}
-		if((this.getActivityStatus() == "move") && (! this.getUnitPosition().equals(this.getNextPosition()))) {
-			throw new IllegalStateException();
-		}
-		if(this.getActivityStatus() != "move") {
-			this.setActivityStatus("move");
-			PositionVector destination = centrePosition(PositionVector.sum(this.getUnitPosition(), position));
-			PositionVector velocity = calcVelocity(this.calcWalkingSpeed(PositionVector.sum(this.getUnitPosition(),position)),
-					destination, this.getUnitPosition());
-			this.setCurrentVelocity(velocity);
-			this.setNextPosition(destination);	
-		}
-		if(this.getUnitPosition().equals(this.getDestination())){
-			this.setDestination(this.getNextPosition());
+		if(! position.equals(this.getUnitPosition())){
+			if((!isValidUnitPosition(PositionVector.sum(this.getUnitPosition(),position))) || 
+								(!isValidAdjacent(PositionVector.sum(this.getUnitPosition(),position)))) {
+				throw new IllegalArgumentException();
+			}
+			if((this.getActivityStatus() == "move") && (! this.getUnitPosition().equals(this.getNextPosition()))) {
+				throw new IllegalStateException();
+			}
+			if(this.getActivityStatus() != "move") {
+				this.setActivityStatus("move");
+				PositionVector destination = centrePosition(PositionVector.sum(this.getUnitPosition(), position));
+				PositionVector velocity = calcVelocity(this.calcWalkingSpeed(PositionVector.sum(this.getUnitPosition(),position)),
+						destination, this.getUnitPosition());
+				this.setCurrentVelocity(velocity);
+				this.setNextPosition(destination);	
+			}
+			if(this.getUnitPosition().equals(this.getDestination())){
+				this.setDestination(this.getNextPosition());
+			}
 		}
 	}
 	
@@ -1225,7 +1230,7 @@ public class Unit {
 	 * Return the destination of this unit.
 	 */
 	@Basic @Raw
-	private PositionVector getDestination() {
+	public PositionVector getDestination() {
 		return this.destination;
 	}
 	
