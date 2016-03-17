@@ -1742,6 +1742,8 @@ public class Unit {
 		this.setActivityStatus("default");
 		this.setOrientation(Math.atan2((enemy.getUnitPosition().getYArgument() - this.getUnitPosition().getYArgument()),
 				enemy.getUnitPosition().getXArgument() - this.getUnitPosition().getXArgument()));
+		this.setNextPosition(this.getUnitPosition());
+		this.setDestination(this.getUnitPosition());
 		if(this.dodge(enemy) == true) {
 			this.moveToAdjacent(this.randomAdjacent());
 		}
