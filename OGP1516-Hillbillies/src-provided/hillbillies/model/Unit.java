@@ -71,7 +71,7 @@ import be.kuleuven.cs.som.annotate.*;
  *         unit.
  *       | isValidAutRestCounter(getAutRestCounter())
  * @author Michaël Dooreman
- * @version	0.15
+ * @version	0.16
  */
 public class Unit {
 	
@@ -282,6 +282,7 @@ public class Unit {
 		return this.name;
 	}
 	
+	//do with regex!
 	/**
 	 * Check whether the given name is a valid name for
 	 * any unit.
@@ -290,11 +291,11 @@ public class Unit {
 	 *         The name to check.
 	 * @return	True if and only if, the name is longer than 2 character, starts with an uppercase letter and only contains valid
 	 * 			characters.
-	 *       | result == ((name.length() >= 2) && (Character.isLetter(name.charAt(0))) && (Character.isUpperCase(name.charAt(0)))
+	 *       | result == ((name != null) && (name.length() >= 2) && (Character.isLetter(name.charAt(0))) && (Character.isUpperCase(name.charAt(0)))
 	 *       | 																								&& (validCharInName(name))
 	*/
 	private static boolean isValidName(String name) {
-		return ((name.length() >= 2) && (Character.isLetter(name.charAt(0))) && (Character.isUpperCase(name.charAt(0)))
+		return ((name != null) && (name.length() >= 2) && (Character.isLetter(name.charAt(0))) && (Character.isUpperCase(name.charAt(0)))
 				&& (validCharInName(name)));
 	}
 	
@@ -1614,9 +1615,12 @@ public class Unit {
 	 * 			This unit is already attacking.
 	 * 			| (this.getActivityStatus().equals("attack"))
 	 */
-	public void attack(Unit target) throws IllegalStateException {
+	public void attack(Unit target) throws IllegalStateException, IllegalArgumentException {
 		if ((this.getActivityStatus().equals("attack"))) {
 			throw new IllegalStateException();
+		}
+		if (! this.isValidAdjacent(target.getUnitPosition())) {
+			throw new IllegalArgumentException("Not in reach");
 		}
 		this.setMinRestCounter(0);
 		this.setActivityStatus("attack");
@@ -1728,6 +1732,10 @@ public class Unit {
 	 * @effect	This unit's orientation is set to face it's enemy.
 	 * 			| this.setOrientation(Math.atan2((enemy.getUnitPosition().getYArgument() - this.getUnitPosition().getYArgument()),
 	 *			|	enemy.getUnitPosition().getXArgument() - this.getUnitPosition().getXArgument()))
+	 * @effect	This unit's next position and final destination are set to it's current position, it's velocity to zero.
+	 * 			| this.setNextPosition(this.getUnitPosition())
+	 * 			| this.setDestination(this.getUnitPosition())
+	 * 			| this.setCurrentVelocity(new PositionVector(0,0,0))
 	 * @effect	If by chance this unit is able to dodge, it moves to an adjacent cube.
 	 * 			| if(this.dodge() == true) {
 	 * 			| 	this.moveToAdjacent(this.randomAdjacent())}
@@ -1743,6 +1751,9 @@ public class Unit {
 		this.setActivityStatus("default");
 		this.setOrientation(Math.atan2((enemy.getUnitPosition().getYArgument() - this.getUnitPosition().getYArgument()),
 				enemy.getUnitPosition().getXArgument() - this.getUnitPosition().getXArgument()));
+		this.setNextPosition(this.getUnitPosition());
+		this.setDestination(this.getUnitPosition());
+		this.setCurrentVelocity(new PositionVector(0,0,0));
 		if(this.dodge(enemy) == true) {
 			this.moveToAdjacent(this.randomAdjacent());
 		}
