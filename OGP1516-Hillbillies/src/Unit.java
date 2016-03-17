@@ -1,7 +1,7 @@
 import java.util.*;
+import ogp.framework.util.*;
 import be.kuleuven.cs.som.annotate.*;
 
-//work out stats in total!
 /**
  * @invar  The unitPosition of each unit must be a valid unitPosition for any
  *         unit.
@@ -70,124 +70,83 @@ import be.kuleuven.cs.som.annotate.*;
  *         unit.
  *       | isValidAutRestCounter(getAutRestCounter())
  * @author Michaël Dooreman
- * @version	0.16
+ * @version	0.17
  */
 public class Unit {
 	
 	/**
 	 * Initialize this new Unit with given position, name, weight, strength, agility, toughness.
 	 * 
-	 * @param  position
-	 * 		   The position for this new unit.
-	 * @param  name
-	 * 		   The name for this new unit.
-	 * @param  strength
-	 * 		   The strength for this new unit.
-	 * @param  agility
-	 * 		   The agility for this new unit.
-	 * @param  toughness
-	 * 		   The toughness for this new unit.
-	 * @param  weight
-	 * 		    The weight for this new unit.
-	 * @pre    The given decimal stamina must be a valid decimal stamina for any unit.
-	 *       | isValidDoubleStamina(decimal stamina)
-	 * @post    The position of this new unit is equal to the cube centre of the given position.
-	 * 			| new.getUnitPosition() == centrePosition(position)
+	 * @param  position		The position for this new unit.
+	 * @param  name			The name for this new unit.
+	 * @param  strength		The strength for this new unit.
+	 * @param  agility		The agility for this new unit.
+	 * @param  toughness	The toughness for this new unit.
+	 * @param  weight		The weight for this new unit.
+	 * @pre		The given decimal stamina must be a valid decimal stamina for any unit.
+	 *       	| isValidDoubleStamina(decimal stamina)
+	 * @effect	The position of this new unit is set to the cube centre of the given position.
+	 * 			| this.setUnitPosition(centrePosition(position))
 	 * @post    The name of this new unit equals the given name.
-	 * 			| new.getName() == name
-	 * @post    The strength of this new unit equals the given strength.
-	 * 			| new.getStrength() == strength
-	 * @post    The agility of the new unit equals the given agility.
-	 * 			| new.getAgility() == agility
-	 * @post    The toughness of this new unit equals the given toughness.
-	 * 			| new.getToughness() == toughness
-	 * @post    The weight of this new unit equals its strength times its agility, divided by 2.
-	 * 			| new.getWeight() == ((new.getStrength())*(new.getAgility()))/2
-	 * @post    The maximum amount of hitpoints of this new unit equals 200*(weight/100)*(toughness/100) rounded up.
-	 * 			| new.getMaxHP() == 200*(new.getWeight()/100)*(new.getToughness()/100)
-	 * @post    The maximum amount of stamina of this new unit equals 200*(weight/100)*(toughness/100) rounded up.
-	 * 			| new.getMaxStam() == 200*(new.getWeight()/100)*(new.getToughness()/100)
-	 * @post    The orientation of this new unit is Pi/2.
-	 * 			| new.getOrientation() == Pi/2
-	 * @post    If the given toughness is a valid toughness for any unit,
-	 *          the toughness of this new unit is equal to the given
-	 *          toughness. Otherwise, the toughness of this new unit is equal
-	 *          to 25.
-	 *       	| if (isValidToughness(toughness))
-	 *       	|   then new.getToughness() == toughness
-	 *       	|   else new.getToughness() == 25
-	 * @post    If the given agility is a valid agility for any unit,
-	 *          the agility of this new unit is equal to the given
-	 *          agility. Otherwise, the agility of this new unit is equal
-	 *          to 25.
-	 *       	| if (isValidAgility(agility))
-	 *       	|   then new.getAgility() == agility
-	 *       	|   else new.getAgility() == 25
-	 * @effect  The maximum hitpoints of this new unit are set.
+	 * 			| new.getName().equals(name)
+	 * @effect	The strength of this new unit is set to the given strength.
+	 * 			| this.setStrength(this.makeInitialAttValue(strength))
+	 * @effect	The agility of this new unit is set to the given agility.
+	 * 			| this.setAgility(this.makeInitialAttValue(agility))
+	 * @effect	The toughness of this new unit is set to the given toughness.
+	 * 			| this.setToughness(this.makeInitialAttValue(toughness))
+	 * @effect	The weight of this new unit is set to the given weight.
+	 * 			| this.setWeight(this.makeInitialAttValue(weight))
+	 * @effect  The maximum hitpoints of this new unit are calculated and set.
 	 * 			| setMaxHP(calcMaxHPStam(getWeight(), getToughness()))
 	 * @effect  The maximum stamina of this new unit is set.
-	 * 			|setMaxStamina(calcMaxHPStam(getWeight(), getToughness()))
-	 * @effect  The currentStamina and double type stamina of this new unit are equal to the maximum stamina.
+	 * 			| setMaxStamina(calcMaxHPStam(getWeight(), getToughness()))
+	 * @effect	The double type hitpoints of this new unit are set to the maximum amount of hitpoints this unit can have.
+	 *       	| this.setDoubleHP(this.getMaxHP())
+	 * @effect  The double type stamina of this new unit are set to the maximum stamina this unit can have
 	 *       	| this.setDoubleStamina(this.getMaxStamina())
-	 * @post    If the given orientation is a valid orientation for any unit,
-	 *          the orientation of this new unit is equal to the given
-	 *          orientation. Otherwise, the orientation of this new unit is equal
-	 *          to Pi/2.
-	 *       	| if (isValidOrientation(orientation))
-	 *       	|   then new.getOrientation() == orientation
-	 *       	|   else new.getOrientation() == Pi/2
-	 * @effect The activityStatus of this new unit is set to
-	 *         the given activityStatus.
-	 *       | this.setActivityStatus(activityStatus)
-	 * @effect The current velocity of this new unit is set to
-	 *         the the zero vector.
-	 *       | this.setCurrentVelocity(new PositionVector(0, 0, 0))
-	 * @effect The targeted adjacent position of this new unit is set to it's current position.
-	 *       | this.setNextPosition(new PositionVector(this.getUnitPosition().getXArgument(),this.getUnitPosition().getYArgument(),
-			 |	this.getUnitPosition().getZArgument()));
-	 * @effect The destination of this new unit is set to
-	 *         the given destination.
-	 *       | this.setDestination(destination)
-	 * @effect The sprinting status of this new unit is set to
-	 *         to false by default.
-	 *       | this.setSprint(false)
-	 * @post   The double type stamina of this new unit is equal to the maximum stamina.
-	 *       | new.getDoubleStamina() == this.setDoubleStamina((double)this.getMaxStamina())
-	 * @effect The work time of this new unit is set to
-	 *         the given work time.
-	 *       | this.resetWorkTime()
-	 * @effect The attack time of this new unit is set to 0.
-	 *       | this.setAttackTime(0)
-	 * @effect   The double type hitpoints and current hitpoints of this new unit are set to the maximum amount of hitpoints this unit
-	 * 			 can have
-	 *       | this.setDoubleHP(this.getMaxHP())
-	 * @effect The minimum rest counter of this new unit is set to 0.
-	 *       | this.setMinRestCounter(0)
-	 * @effect The automatic rest counter of this new unit is set to 0.
-	 *       | this.setAutRestCounter(0)
-	 * @effect The default behaviour of this new unit is off.
-	 *       | this.setDefaultBehaviour(false)
-	 * @throws  IllegalArgumentException
-	 * 		    One of the given attributes (strength, agility, toughness, weight) does not have a legal initial value.
-	 * 			| (! isValidInitialAtt(strength)) || (! isValidInitialAtt(agility)) || (! isValidInitialAtt(toughness))
-	 * 			|																	|| (! isValidInitialAtt(weight))
+	 * @post    The orientation of this new unit is Pi/2.
+	 * 			| new.getOrientation().fuzzyEquals(Math.PI/2.0)
+	 * @effect  The activityStatus of this new unit is set to default.
+	 *       	| this.setActivityStatus("default")
+	 * @effect  The current velocity of this new unit is set to the the zero vector.
+	 *          | this.setCurrentVelocity(new PositionVector(0, 0, 0))
+	 * @effect  The targeted next position of this new unit is set to it's current position.
+	 *          | this.setNextPosition(new PositionVector(this.getUnitPosition().getXArgument(),this.getUnitPosition().getYArgument(),
+	 *		    | 			this.getUnitPosition().getZArgument()));
+	 * @effect  The destination of this new unit is set to it's current position..
+	 *       	| this.setDestination(this.getUnitPosition().getXArgument(),this.getUnitPosition().getYArgument(),
+	 *       	|		this.getUnitPosition().getZArgument()))
+	 * @effect 	The sprinting status of this new unit is set to false by default.
+	 *       	| this.setSprint(false)
+	 * @effect  The work time of this new unit is reseted.
+	 *       	| this.resetWorkTime()
+	 * @effect  The attack time of this new unit is set to 0.
+	 *       	| this.setAttackTime(0)
+	 * @effect  The minimum rest counter of this new unit is set to 0.
+	 *       	| this.setMinRestCounter(0)
+	 * @effect  The automatic rest counter of this new unit is set to 0.
+	 *       	| this.setAutRestCounter(0)
+	 * @effect  The default behaviour of this new unit is set false.
+	 *       	| this.setDefaultBehaviour(false)
 	 * @throws  IllegalArgumentException
 	 * 		    The given name is not a valid name.
 	 * 			| ! isValidName(name)
+	 * @throws	IllegalArgumentException
+	 * 			The given position is not a valid position for this unit.
+	 * 			| !isValidUnitPosition(position)
 	 */
 	public Unit(PositionVector position, String name, int strength, int agility, int toughness,int weight) 
 													throws IllegalArgumentException {
-		if((! isValidInitialAtt(strength)) || (! isValidInitialAtt(agility)) || 
-				(! isValidInitialAtt(toughness)) || (! isValidInitialAtt(weight)) || (! isValidName(name)) 
-					|| (!isValidUnitPosition(position)) || (!(weight >= ((strength+agility)/2)))) {
+		if((! isValidName(name)) || (!isValidUnitPosition(position))) {
 			throw new IllegalArgumentException();
 		}
 		this.setUnitPosition(centrePosition(position));
 		this.setName(name);
-		this.setStrength(strength);
-		this.setAgility(agility);
-		this.setToughness(toughness);
-		this.setWeight(weight);
+		this.setStrength(this.makeInitialAttValue(strength));
+		this.setAgility(this.makeInitialAttValue(agility));
+		this.setToughness(this.makeInitialAttValue(toughness));
+		this.setWeight(this.makeInitialAttValue(weight));
 		this.setMaxHP(calcMaxHPStam(getWeight(), getToughness()));
 		this.setMaxStamina(calcMaxHPStam(getWeight(), getToughness()));
 		this.setDoubleHP(this.getMaxHP());
@@ -200,7 +159,6 @@ public class Unit {
 		this.setDestination(new PositionVector(this.getUnitPosition().getXArgument(),this.getUnitPosition().getYArgument(),
 				this.getUnitPosition().getZArgument()));
 		this.setSprint(false);
-		this.setDoubleStamina((double)this.getMaxStamina());
 		this.resetWorkTime();
 		this.setAttackTime(0);
 		this.setMinRestCounter(0);
@@ -224,12 +182,16 @@ public class Unit {
 	 * @param  unitPosition
 	 *         The unitPosition to check.
 	 * @return 
-	 *       | result == ((position.getXArgument() >= 0) && (position.getYArgument() >= 0) && (position.getZArgument() >= 0) &&
-	 *       					(position.getXArgument() < 50) && (position.getYArgument() < 50) && (position.getZArgument() < 50))
+	 *       | result == (Util.fuzzyGreaterThanOrEqualTo(position.getXArgument(),0) 
+	 *       |				&& Util.fuzzyGreaterThanOrEqualTo(position.getYArgument(),0) 
+	 *       |					&& Util.fuzzyGreaterThanOrEqualTo(position.getZArgument(),0)
+	 *       |						&& (position.getXArgument() < 50) && (position.getYArgument() < 50) && (position.getZArgument() < 50))
 	*/
 	private static boolean isValidUnitPosition(PositionVector position) {
-		return ((position.getXArgument() >= 0) && (position.getYArgument() >= 0) && (position.getZArgument() >= 0) &&
-				      		(position.getXArgument() < 50) && (position.getYArgument() < 50) && (position.getZArgument() < 50));
+		return (Util.fuzzyGreaterThanOrEqualTo(position.getXArgument(),0) 
+					&& Util.fuzzyGreaterThanOrEqualTo(position.getYArgument(),0) 
+						&& Util.fuzzyGreaterThanOrEqualTo(position.getZArgument(),0)
+				      		&& (position.getXArgument() < 50) && (position.getYArgument() < 50) && (position.getZArgument() < 50));
 	}
 	
 	/**
@@ -239,11 +201,11 @@ public class Unit {
 	 *         The new unitPosition for this unit.
 	 * @post   The unitPosition of this new unit is equal to
 	 *         the given unitPosition.
-	 *       | new.getUnitPosition() == position
+	 *       	| new.getUnitPosition().equals(position)
 	 * @throws IllegalArgumentException
 	 *         The given unitPosition is not a valid unitPosition for any
 	 *         unit.
-	 *       | ! isValidUnitPosition(getUnitPosition())
+	 *       	| ! isValidUnitPosition(getUnitPosition())
 	 */
 	@Raw
 	private void setUnitPosition(PositionVector position) 
@@ -260,7 +222,7 @@ public class Unit {
 		
 	/**
 	 * Return the cubePosition of this unit.
-	 * @effect
+	 * @return	The position of the cube on which this unit is standing.
 	 * 			| result == {(int) this.getUnitPosition().getXArgument(), (int) this.getUnitPosition().getYArgument(),
 	 * 			|										(int) this.getUnitPosition().getZArgument()}
 	 */
@@ -289,15 +251,40 @@ public class Unit {
 	 * @param  name
 	 *         The name to check.
 	 * @return	True if and only if, the name is longer than 2 character, starts with an uppercase letter and only contains valid
-	 * 			characters.
-	 *       | result == ((name != null) && (name.length() >= 2) && (Character.isLetter(name.charAt(0))) && (Character.isUpperCase(name.charAt(0)))
-	 *       | 																								&& (validCharInName(name))
+	 * 			characters and the given name is not null.
+	 *       	| result == ((name != null) && (name.length() >= 2) && (Character.isLetter(name.charAt(0))) && (Character.isUpperCase(name.charAt(0)))
+	 *       	| 																						&& (validCharInName(name))
 	*/
 	private static boolean isValidName(String name) {
 		return ((name != null) && (name.length() >= 2) && (Character.isLetter(name.charAt(0))) && (Character.isUpperCase(name.charAt(0)))
 				&& (validCharInName(name)));
 	}
 	
+	/**
+	 * Checks whether the given name consists of valid characters.
+	 * @param name	The given name.
+	 * @return	Return true if and only if the name consists of  allowed characters.
+	 * 			| ArrayList<Character> validCharactersList = new ArrayList<Character>()
+	 *			| char[] validCharacters = getValidCharacters()
+	 *			| for(char character: validCharacters){
+	 *		  	|	validCharactersList.add(character)
+	 *	  		|  }
+	 *			| List<Character> characters = new ArrayList<>()
+	 *			| int k = 0
+	 *			| while(k < name.length()) {
+	 *			|	characters.add(name.charAt(k))
+	 *			|	k++
+	 *			| }
+	 *			| int i = 0
+	 *			| boolean result = true
+	 *			| while ((i < characters.size()) && (result == true)) {
+	 *			|	if (! validCharactersList.contains(Character.toLowerCase(characters.get(i)))) {
+	 *			|		result = false
+	 *			|	}
+	 *			|	i++
+	 *			| }
+	 * 			| result == result 
+	 */
 	private static boolean validCharInName(String name) {
 		ArrayList<Character> validCharactersList = new ArrayList<Character>();
 		char[] validCharacters = getValidCharacters();
@@ -323,6 +310,10 @@ public class Unit {
 	
 	private static char[] validCharacters = {' ','"','\'','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'};
 	
+	/**
+	 * Return the array containing the legal characters for names.
+	 */
+	@Basic @Immutable
 	private static char[] getValidCharacters() {
 		return validCharacters;
 	}
@@ -334,7 +325,7 @@ public class Unit {
 	 *         The new name for this unit.
 	 * @post   The name of this new unit is equal to
 	 *         the given name.
-	 *       | new.getName() == name
+	 *       | new.getName().equals(name)
 	 * @throws IllegalArgumentException
 	 *         The given name is not a valid name for any
 	 *         unit.
@@ -348,9 +339,6 @@ public class Unit {
 		this.name = name;
 	}
 	
-	
-	
-	
 	/**
 	 * Variable registering the name of this unit.
 	 */
@@ -360,7 +348,7 @@ public class Unit {
 	 * Rename this unit to a given name.
 	 * @param  name
 	 * 		   The new name for this unit.
-	 * @effect ...
+	 * @effect This unit's name is set to the given name
 	 * 			| this.setName(name)
 	 */
 	public void changeName(String name) {
@@ -396,15 +384,28 @@ public class Unit {
 	 * 
 	 * @param  weight
 	 *         The new weight for this unit.
-	 * @post   If the given weight is a valid weight for any unit,
-	 *         the weight of this new unit is equal to the given
-	 *         weight.
-	 *       | if (isValidWeight(weight))
-	 *       |   then new.getWeight() == weight
+	 * @post    If the given weight is a valid weight for any unit,
+	 *          the weight of this new unit is equal to the given
+	 *          weight.
+	 *       	| if (isValidWeight(weight))
+	 *       	|   then new.getWeight() == weight
+	 * @post	If the given weight is more than 200, this unit's weight is set to 200.
+	 * 			| if (weight > 200)
+	 * 			| 	this.weight = 200
+	 * @post	If the given weight is smaller than half of the sum of this unit's agility and strength,
+	 * 			this unit's weight is set to half of the sum of this unit's agility and strength.
+	 * 			| if (weight < (this.getStrength()+this.getAgility())/2)
+	 * 			| 	this.weight = (this.getStrength()+this.getAgility())/2
 	 */
 	public void setWeight(int weight) {
 		if (isValidWeight(weight))
 			this.weight = weight;
+		if (weight > 200) {
+			this.weight = 200;
+		}
+		if (weight < (this.getStrength()+this.getAgility())/2) {
+			this.weight = (this.getStrength()+this.getAgility())/2;
+		}
 	}
 	
 	/**
@@ -439,16 +440,28 @@ public class Unit {
 	 * 
 	 * @param  strength
 	 *         The new strength for this unit.
-	 * @post   If the given strength is a valid strength for any unit,
-	 *         the strength of this new unit is equal to the given
-	 *         strength.
-	 *       | if (isValidStrength(strength))
-	 *       |   then new.getStrength() == strength
+	 * @post    If the given strength is a valid strength for any unit,
+	 *          the strength of this new unit is equal to the given
+	 *          strength.
+	 *       	| if (isValidStrength(strength))
+	 *       	|   then new.getStrength() == strength
+	 * @post	If the given strength is bigger than 200, this unit's strength is set to 200.
+	 * 			| if (strength > 200)
+	 * 			| 	this.strength = 200
+	 * @post	If the given strength is smaller than 1, this unit's strength is set to 1.
+	 * 			| if (strength < 1)	
+	 * 			| 	this.strength = 1
 	 */
 	@Raw
 	public void setStrength(int strength) {
 		if (isValidStrength(strength))
 			this.strength = strength;
+		if (strength > 200) {
+			this.strength = 200;
+		}
+		if (strength < 1) {
+			this.strength = 1;
+		}
 	}
 	
 	/**
@@ -456,8 +469,6 @@ public class Unit {
 	 */
 	private int strength;
 
-	
-	
 	/**
 	 * Return the agility of this unit.
 	 */
@@ -484,16 +495,28 @@ public class Unit {
 	 * 
 	 * @param  agility
 	 *         The new agility for this unit.
-	 * @post   If the given agility is a valid agility for any unit,
-	 *         the agility of this new unit is equal to the given
-	 *         agility.
-	 *       | if (isValidAgility(agility))
-	 *       |   then new.getAgility() == agility
+	 * @post    If the given agility is a valid agility for any unit,
+	 *          the agility of this new unit is equal to the given
+	 *          agility.
+	 *       	| if (isValidAgility(agility))
+	 *       	|   then new.getAgility() == agility
+	 * @post	If the given agility is bigger than 200, this unit's agility is set to 200.
+	 * 			| if (agility > 200) 
+	 *			|	this.agility = 200
+	 * @post	If the given agility is smaller than 1, this unit's agility is set to 1.
+	 * 			| if (agility < 1)
+	 * 			| 	this.agility = 1
 	 */
 	@Raw
 	public void setAgility(int agility) {
 		if (isValidAgility(agility))
 			this.agility = agility;
+		if (agility > 200) {
+			this.agility = 200;
+		}
+		if (agility < 1) {
+			this.agility = 1;
+		}
 	}
 	
 	/**
@@ -501,9 +524,6 @@ public class Unit {
 	 */
 	private int agility;
 
-	
-	
-	
 	/**
 	 * Return the toughness of this unit.
 	 */
@@ -530,32 +550,34 @@ public class Unit {
 	 * 
 	 * @param  toughness
 	 *         The new toughness for this unit.
-	 * @post   If the given toughness is a valid toughness for any unit,
-	 *         the toughness of this new unit is equal to the given
-	 *         toughness.
-	 *       | if (isValidToughness(toughness))
-	 *       |   then new.getToughness() == toughness
+	 * @post    If the given toughness is a valid toughness for any unit,
+	 *          the toughness of this new unit is equal to the given
+	 *          toughness.
+	 *       	| if (isValidToughness(toughness))
+	 *       	|   then new.getToughness() == toughness
+	 * @post	If the given toughness is bigger than 200, this unit's toughness is set to 200.
+	 * 			| if (toughness > 200)
+	 * 			| 	this.toughness = 200
+	 * @post	If the given toughness is smaller than 1, this unit's toughness is set to 1.
+	 * 			| if (toughness < 1)
+	 * 			| 	this.toughness = 1
 	 */
 	@Raw
 	public void setToughness(int toughness) {
 		if (isValidToughness(toughness))
 			this.toughness = toughness;
+		if (toughness > 200) {
+			this.toughness = 200;
+		}
+		if (toughness < 1) {
+			this.toughness = 1;
+		}
 	}
 	
 	/**
 	 * Variable registering the toughness of this unit.
 	 */
 	private int toughness;
-	
-	/**
-	 * Check whether the value of the given attribute is a valid initial value.
-	 * @param attribute	The value of the attribute.
-	 * @return
-	 * 		| result == (attribute >= 25) && (attribute <= 100)
-	 */
-	private static boolean isValidInitialAtt(int attribute) {
-		return ((attribute >= 25) && (attribute <= 100));
-	}
 	
 	/**
 	 * Return the maxHP of this unit.
@@ -572,7 +594,7 @@ public class Unit {
 	 * @param  maxHP
 	 *         The maxHP to check.
 	 * @return 
-	 *       | result == calcMaxHPStam(getWeight(), getToughness())
+	 *       | result == (maxHP == calcMaxHPStam(getWeight(), getToughness()))
 	*/
 	private boolean isValidMaxHP(int maxHP) {
 		return (maxHP == calcMaxHPStam(getWeight(), getToughness()));
@@ -617,7 +639,7 @@ public class Unit {
 	 * @param  maxStamina
 	 *         The maxStamina to check.
 	 * @return 
-	 *       | result == calcMaxHPStam(this.getWeight(), this.getToughness())
+	 *       | result == (maxStamina == calcMaxHPStam(this.getWeight(), this.getToughness()))
 	*/
 	private boolean isValidMaxStamina(int maxStamina) {
 		return (maxStamina == calcMaxHPStam(this.getWeight(), this.getToughness()));
@@ -630,10 +652,10 @@ public class Unit {
 	 *         The new maxStamina for this unit.
 	 * @pre    The given maxStamina must be a valid maxStamina for any
 	 *         unit.
-	 *       | isValidMaxStamina(maxStamina)
+	 *       	| isValidMaxStamina(maxStamina)
 	 * @post   The maxStamina of this unit is equal to the given
 	 *         maxStamina.
-	 *       | new.getMaxStamina() == maxStamina
+	 *       	| new.getMaxStamina() == maxStamina
 	 */
 	@Raw
 	private void setMaxStamina(int maxStamina) {
@@ -667,7 +689,7 @@ public class Unit {
 	/**
 	 * Return the currentHP of this unit.
 	 */
-	@Basic @Raw
+	@Basic
 	public int getCurrentHP() {
 		return this.currentHP;
 	}
@@ -713,7 +735,7 @@ public class Unit {
 	/**
 	 * Return the currentStamina of this unit.
 	 */
-	@Basic @Raw
+	@Basic
 	public int getCurrentStamina() {
 		return this.currentStamina;
 	}
@@ -754,7 +776,7 @@ public class Unit {
 	 */
 	private int currentStamina;
 	
-	
+	//******************************************************************************************************************************
 	
 	/**
 	 * Return the orientation of this unit.
@@ -795,7 +817,7 @@ public class Unit {
 	 * 			If it's minimum rest counter isn't zero yet, it'll continue to rest until the counter reaches zero, then it'll 
 	 * 			continue or start with it's planned activity.
 	 * 			If it didn't reach it's destination or next position yet or it's activity status is move, it moves.
-	 * 			If it's activity status is wor, it works.
+	 * 			If it's activity status is work, it works.
 	 * 			If it's activity status is rest, it rests.
 	 * 			If it's activity status is default and default behaviour is activated, is starts doing a random activity.
 	 * @throws	IllegalArgumentException
@@ -1010,28 +1032,6 @@ public class Unit {
 	}
 	
 	
-	
-	/**
-	 * Calculates the distance between two positions.
-	 * @param position	The first position.
-	 * @param target	The second position.
-	 * @return	The distance between the two given positions, calculated with the mathematical formula for distance.
-	 * 			| result == Math.sqrt(Math.pow(2,calcDifferenceVector(position1, position2).getXArgument()) 
-	 * 			| 									+ Math.pow(2,calcDifferenceVector(position1, position2).getYArgument())
-	 * 			| 											 + Math.pow(2,calcDifferenceVector(position1, position2).getZArgument()))
-	 */
-	public static double calcDistance(PositionVector position, PositionVector target) {
-		PositionVector difference = calcDifferenceVector(position, target);
-		double xDifference = difference.getXArgument();
-		double yDiffference = difference.getYArgument();
-		double zDifference = difference.getZArgument();
-		double xSquare = Math.pow(xDifference,2);
-		double ySquare = Math.pow(yDiffference,2);
-		double zSquare = Math.pow(zDifference,2);
-		double distance = Math.sqrt(xSquare+ySquare+zSquare);
-		return distance;
-	}
-	
 	/**
 	 * Calculates the velocity for a given speed, the target position vector and the start position vector.
 	 * @param speed	The speed.
@@ -1043,29 +1043,13 @@ public class Unit {
 	 * 			|							speed*calcDifferenceVector(position1, position2).getZArgument()/calcDistance(position1,position2))
 	 */
 	private static PositionVector calcVelocity(double speed, PositionVector targetPosition, PositionVector startPosition) {
-		PositionVector difference = calcDifferenceVector(targetPosition, startPosition);
+		PositionVector difference = PositionVector.calcDifferenceVector(targetPosition, startPosition);
 		double xDifference = difference.getXArgument();
 		double yDifference = difference.getYArgument();
 		double zDifference = difference.getZArgument();
-		double distance = calcDistance(targetPosition, startPosition);
+		double distance = PositionVector.calcDistance(targetPosition, startPosition);
 		return (new PositionVector(speed*xDifference/distance, speed*yDifference/distance, speed*zDifference/distance));
 	}
-	
-	
-	
-	/**
-	 * Calculates the difference vector between to given positions.
-	 * @param position	The first position.
-	 * @param target	The second position.
-	 * @return 	A vector with the argument differences of the given position vectors as its arguments.
-	 * 			| result == new PositionVector (position1.getXArgument()-position2.getXArgument(), position1.getYArgument()-position2.getYArgument(), 
-	 *			|						position1.getZArgument()-position2.getZArgument())
-	 */
-	public static PositionVector calcDifferenceVector(PositionVector position, PositionVector target) {
-		return (new PositionVector (position.getXArgument()-target.getXArgument(), position.getYArgument()-target.getYArgument(), 
-				position.getZArgument()-target.getZArgument()));
-	}
-	
 	
 	/**
 	 * Calculates the centre position of the cube that contains the given position.
@@ -1140,6 +1124,11 @@ public class Unit {
 	
 	/**
 	 * Return the current velocity of this unit, according to it's sprint status.
+	 * @return	Return double the normal velocity if the unit is sprinting.
+	 * 			| if(this.getSprint() == true)
+	 * 			| 	result == PositionVector.multiplyBy(2, this.currentVelocity)
+	 * @return	Return the normal velocity is this unit is not sprinting.
+	 * 			| result == this.currentVelocity
 	 */
 	public PositionVector getCurrentVelocity() {
 		if(this.getSprint() == true){
@@ -1422,8 +1411,8 @@ public class Unit {
 	 * 			| this.increaseAutRestCounter(dt)
 	 */
 	private void miniMove(double dt, int multiplier) {
-		double distance = calcDistance(this.getUnitPosition(), this.getNextPosition());
-		double speed = calcDistance((new PositionVector(0,0,0)), this.getCurrentVelocity());
+		double distance = PositionVector.calcDistance(this.getUnitPosition(), this.getNextPosition());
+		double speed = PositionVector.calcDistance((new PositionVector(0,0,0)), this.getCurrentVelocity());
 		double travelTime = distance/speed;
 		this.setOrientation( Math.atan2(this.getCurrentVelocity().getYArgument(), this.getCurrentVelocity().getXArgument()));
 		if (travelTime <= dt) {
@@ -1447,7 +1436,7 @@ public class Unit {
 	/**
 	 * Return the double type stamina of this unit.
 	 */
-	@Basic
+	@Basic @Raw
 	private double getDoubleStamina() {
 		return this.doubleStamina;
 	}
@@ -1494,7 +1483,7 @@ public class Unit {
 	/**
 	 * Return the work time of this unit.
 	 */
-	@Basic @Raw
+	@Basic
 	private double getWorkTime() {
 		return this.workTime;
 	}
@@ -2032,7 +2021,7 @@ public class Unit {
 	/**
 	 * Return the minimum rest counter of this unit.
 	 */
-	@Basic @Raw
+	@Basic
 	public double getMinRestCounter() {
 		return this.minRestCounter;
 	}
@@ -2252,5 +2241,24 @@ public class Unit {
 		if (action == 2) {
 			this.rest();
 		}
+	}
+	
+	/**
+	 * Return a given attribute value, transformed to be a legal initial attribute value.
+	 * @param attributeValue	The given attribute value.
+	 * @return	If the given attribute value is bigger than 100, 100 is returned.
+	 * 			| result == 100
+	 * @return	If the given attribute value is smaller than 25, 25 is returned.
+	 * 			| result == 25
+	 * @return	If the given attribute value is in the range of 25 and 100 (both inclusively), the original value is returned.
+	 * 			| result == attributeValue
+	 */
+	private int makeInitialAttValue(int attributeValue){
+		if (attributeValue > 100)
+			return 100;
+		else if (attributeValue < 25)
+			return 25;
+		else 
+			return attributeValue;
 	}
 }

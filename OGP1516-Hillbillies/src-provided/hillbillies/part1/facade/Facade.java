@@ -164,7 +164,7 @@ public class Facade implements IFacade{
 	@Override
 	public double getCurrentSpeed(Unit unit) throws ModelException {
 		PositionVector velocity = unit.getCurrentVelocity();
-		double speed = Unit.calcDistance((new PositionVector(0,0,0)), velocity);
+		double speed = PositionVector.calcDistance((new PositionVector(0,0,0)), velocity);
 		return speed;
 	}
 

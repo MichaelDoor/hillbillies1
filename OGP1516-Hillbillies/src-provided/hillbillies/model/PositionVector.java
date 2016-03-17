@@ -1,9 +1,5 @@
 package hillbillies.model;
-
-import be.kuleuven.cs.som.annotate.Basic;
-import be.kuleuven.cs.som.annotate.Immutable;
-import be.kuleuven.cs.som.annotate.Raw;
-import be.kuleuven.cs.som.annotate.Value;
+import be.kuleuven.cs.som.annotate.*;
 
 /**
  * A class of position vectors involving arguments as double precision floating-point numbers.
@@ -118,5 +114,38 @@ public class PositionVector {
 		return ((this.getXArgument() == position.getXArgument()) && (this.getYArgument() == position.getYArgument())
 				&& (this.getZArgument() == position.getZArgument()));
 	}
+	
+	/**
+	 * Calculates the difference vector between to given positions.
+	 * @param position	The first position.
+	 * @param target	The second position.
+	 * @return 	A vector with the argument differences of the given position vectors as its arguments.
+	 * 			| result == new PositionVector (position1.getXArgument()-position2.getXArgument(), position1.getYArgument()-position2.getYArgument(), 
+	 *			|						position1.getZArgument()-position2.getZArgument())
+	 */
+	public static PositionVector calcDifferenceVector(PositionVector position, PositionVector target) {
+		return (new PositionVector (position.getXArgument()-target.getXArgument(), position.getYArgument()-target.getYArgument(), 
+				position.getZArgument()-target.getZArgument()));
+	}
+	
+	/**
+	 * Calculates the distance between two positions.
+	 * @param position	The first position.
+	 * @param target	The second position.
+	 * @return	The distance between the two given positions, calculated with the mathematical formula for distance.
+	 * 			| result == Math.sqrt(Math.pow(2,calcDifferenceVector(position1, position2).getXArgument()) 
+	 * 			| 									+ Math.pow(2,calcDifferenceVector(position1, position2).getYArgument())
+	 * 			| 											 + Math.pow(2,calcDifferenceVector(position1, position2).getZArgument()))
+	 */
+	public static double calcDistance(PositionVector position, PositionVector target) {
+		PositionVector difference = PositionVector.calcDifferenceVector(position, target);
+		double xDifference = difference.getXArgument();
+		double yDiffference = difference.getYArgument();
+		double zDifference = difference.getZArgument();
+		double xSquare = Math.pow(xDifference,2);
+		double ySquare = Math.pow(yDiffference,2);
+		double zSquare = Math.pow(zDifference,2);
+		double distance = Math.sqrt(xSquare+ySquare+zSquare);
+		return distance;
+	}
 }
-

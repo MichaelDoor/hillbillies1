@@ -50,24 +50,28 @@ public class UnitTest {
 		new Unit(new PositionVector(1.0,1.0,1.0), "ikke", 50, 50, 50, 50);
 	}
 	
-	@Test (expected = IllegalArgumentException.class)
+	@Test
 	public void contructor_IllegalStrength() {
-		new Unit(new PositionVector(1.0,1.0,1.0), "Ikke", 101, 50, 50, 50);
+		Unit temp = new Unit(new PositionVector(1.0,1.0,1.0), "Ikke", 101, 50, 50, 50);
+		assertEquals(temp.getStrength(),100);
 	}
 	
-	@Test (expected = IllegalArgumentException.class)
+	@Test
 	public void contructor_IllegalAgility() {
-		new Unit(new PositionVector(1.0,1.0,1.0), "Ikke", 50, 20, 50, 50);
+		Unit temp = new Unit(new PositionVector(1.0,1.0,1.0), "Ikke", 50, 20, 50, 50);
+		assertEquals(temp.getAgility(),25);
 	}
 	
-	@Test (expected = IllegalArgumentException.class)
+	@Test
 	public void contructor_IllegalToughness() {
-		new Unit(new PositionVector(1.0,1.0,1.0), "Ikke", 50, 50, 300, 50);
+		Unit temp = new Unit(new PositionVector(1.0,1.0,1.0), "Ikke", 50, 50, 300, 50);
+		assertEquals(temp.getToughness(),100);
 	}
 	
-	@Test (expected = IllegalArgumentException.class)
+	@Test
 	public void contructor_IllegalWeight() {
-		new Unit(new PositionVector(1.0,1.0,1.0), "Ikke", 50, 50, 50, ((50+50)/2)-1);
+		Unit temp = new Unit(new PositionVector(1.0,1.0,1.0), "Ikke", 50, 50, 50, ((50+50)/2)-1);
+		assertEquals(temp.getWeight(),(temp.getStrength()+temp.getAgility())/2);
 	}
 	
 	@Test
@@ -205,7 +209,7 @@ public class UnitTest {
 	public void calDistance_LegalCase() {
 		PositionVector position1 = new PositionVector(0, 0, 0);
 		PositionVector position2 = new PositionVector(1, 1, 1);
-		double distance = Unit.calcDistance(position1, position2);
+		double distance = PositionVector.calcDistance(position1, position2);
 		assertEquals(distance,Math.sqrt(3),0.00001);
 	}
 	
@@ -239,7 +243,7 @@ public class UnitTest {
 		PositionVector targetPosition = target.getUnitPosition();
 		double hp = target.getCurrentHP();
 		target.defend(tester);
-		boolean dodge = (target.isValidAdjacent(Unit.calcDifferenceVector(target.getUnitPosition(),targetPosition))
+		boolean dodge = (target.isValidAdjacent(PositionVector.calcDifferenceVector(target.getUnitPosition(),targetPosition))
 				&& !(target.getUnitPosition().equals(targetPosition)));
 		boolean block = (target.getCurrentHP() == hp) && (target.getUnitPosition().equals(targetPosition));
 		boolean damage = (hp - tester.getStrength() == target.getCurrentHP());
