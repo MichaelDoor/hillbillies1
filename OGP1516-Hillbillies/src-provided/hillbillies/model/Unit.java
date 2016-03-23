@@ -1,8 +1,8 @@
 package hillbillies.model;
 import java.util.*;
+import ogp.framework.util.*;
 import be.kuleuven.cs.som.annotate.*;
 
-//work out stats in total!
 /**
  * @invar  The unitPosition of each unit must be a valid unitPosition for any
  *         unit.
@@ -71,106 +71,71 @@ import be.kuleuven.cs.som.annotate.*;
  *         unit.
  *       | isValidAutRestCounter(getAutRestCounter())
  * @author Michaël Dooreman
- * @version	0.17
+ * @version	0.18
  */
 public class Unit {
 	
 	/**
 	 * Initialize this new Unit with given position, name, weight, strength, agility, toughness.
 	 * 
-	 * @param  position
-	 * 		   The position for this new unit.
-	 * @param  name
-	 * 		   The name for this new unit.
-	 * @param  strength
-	 * 		   The strength for this new unit.
-	 * @param  agility
-	 * 		   The agility for this new unit.
-	 * @param  toughness
-	 * 		   The toughness for this new unit.
-	 * @param  weight
-	 * 		    The weight for this new unit.
-	 * @pre    The given decimal stamina must be a valid decimal stamina for any unit.
-	 *       | isValidDoubleStamina(decimal stamina)
-	 * @post    The position of this new unit is equal to the cube centre of the given position.
-	 * 			| new.getUnitPosition() == centrePosition(position)
+	 * @param  position		The position for this new unit.
+	 * @param  name			The name for this new unit.
+	 * @param  strength		The strength for this new unit.
+	 * @param  agility		The agility for this new unit.
+	 * @param  toughness	The toughness for this new unit.
+	 * @param  weight		The weight for this new unit.
+	 * @pre		The given decimal stamina must be a valid decimal stamina for any unit.
+	 *       	| isValidDoubleStamina(decimal stamina)
+	 * @effect	The position of this new unit is set to the cube centre of the given position.
+	 * 			| this.setUnitPosition(centrePosition(position))
 	 * @post    The name of this new unit equals the given name.
-	 * 			| new.getName() == name
-	 * @effect    The strength of this new unit is set to the given strength.
+	 * 			| new.getName().equals(name)
+	 * @effect	The strength of this new unit is set to the given strength.
 	 * 			| this.setStrength(this.makeInitialAttValue(strength))
-	 * @effect    The agility of this new unit is set to the given agility.
+	 * @effect	The agility of this new unit is set to the given agility.
 	 * 			| this.setAgility(this.makeInitialAttValue(agility))
-	 * @effect    The toughness of this new unit is set to the given toughness.
+	 * @effect	The toughness of this new unit is set to the given toughness.
 	 * 			| this.setToughness(this.makeInitialAttValue(toughness))
-	 * @effect    The weight of this new unit is set to the given weight.
+	 * @effect	The weight of this new unit is set to the given weight.
 	 * 			| this.setWeight(this.makeInitialAttValue(weight))
-	 * @post    The maximum amount of hitpoints of this new unit equals 200*(weight/100)*(toughness/100) rounded up.
-	 * 			| new.getMaxHP() == 200*(new.getWeight()/100)*(new.getToughness()/100)
-	 * @post    The maximum amount of stamina of this new unit equals 200*(weight/100)*(toughness/100) rounded up.
-	 * 			| new.getMaxStam() == 200*(new.getWeight()/100)*(new.getToughness()/100)
-	 * @post    The orientation of this new unit is Pi/2.
-	 * 			| new.getOrientation() == Pi/2
-	 * @post    If the given toughness is a valid toughness for any unit,
-	 *          the toughness of this new unit is equal to the given
-	 *          toughness. Otherwise, the toughness of this new unit is equal
-	 *          to 25.
-	 *       	| if (isValidToughness(toughness))
-	 *       	|   then new.getToughness() == toughness
-	 *       	|   else new.getToughness() == 25
-	 * @post    If the given agility is a valid agility for any unit,
-	 *          the agility of this new unit is equal to the given
-	 *          agility. Otherwise, the agility of this new unit is equal
-	 *          to 25.
-	 *       	| if (isValidAgility(agility))
-	 *       	|   then new.getAgility() == agility
-	 *       	|   else new.getAgility() == 25
-	 * @effect  The maximum hitpoints of this new unit are set.
+	 * @effect  The maximum hitpoints of this new unit are calculated and set.
 	 * 			| setMaxHP(calcMaxHPStam(getWeight(), getToughness()))
 	 * @effect  The maximum stamina of this new unit is set.
-	 * 			|setMaxStamina(calcMaxHPStam(getWeight(), getToughness()))
-	 * @effect  The currentStamina and double type stamina of this new unit are equal to the maximum stamina.
+	 * 			| setMaxStamina(calcMaxHPStam(getWeight(), getToughness()))
+	 * @effect	The double type hitpoints of this new unit are set to the maximum amount of hitpoints this unit can have.
+	 *       	| this.setDoubleHP(this.getMaxHP())
+	 * @effect  The double type stamina of this new unit are set to the maximum stamina this unit can have
 	 *       	| this.setDoubleStamina(this.getMaxStamina())
-	 * @post    If the given orientation is a valid orientation for any unit,
-	 *          the orientation of this new unit is equal to the given
-	 *          orientation. Otherwise, the orientation of this new unit is equal
-	 *          to Pi/2.
-	 *       	| if (isValidOrientation(orientation))
-	 *       	|   then new.getOrientation() == orientation
-	 *       	|   else new.getOrientation() == Pi/2
-	 * @effect The activityStatus of this new unit is set to
-	 *         the given activityStatus.
-	 *       | this.setActivityStatus(activityStatus)
-	 * @effect The current velocity of this new unit is set to
-	 *         the the zero vector.
-	 *       | this.setCurrentVelocity(new PositionVector(0, 0, 0))
-	 * @effect The targeted adjacent position of this new unit is set to it's current position.
-	 *       | this.setNextPosition(new PositionVector(this.getUnitPosition().getXArgument(),this.getUnitPosition().getYArgument(),
-			 |	this.getUnitPosition().getZArgument()));
-	 * @effect The destination of this new unit is set to
-	 *         the given destination.
-	 *       | this.setDestination(destination)
-	 * @effect The sprinting status of this new unit is set to
-	 *         to false by default.
-	 *       | this.setSprint(false)
-	 * @post   The double type stamina of this new unit is equal to the maximum stamina.
-	 *       | new.getDoubleStamina() == this.setDoubleStamina((double)this.getMaxStamina())
-	 * @effect The work time of this new unit is set to
-	 *         the given work time.
-	 *       | this.resetWorkTime()
-	 * @effect The attack time of this new unit is set to 0.
-	 *       | this.setAttackTime(0)
-	 * @effect   The double type hitpoints and current hitpoints of this new unit are set to the maximum amount of hitpoints this unit
-	 * 			 can have
-	 *       | this.setDoubleHP(this.getMaxHP())
-	 * @effect The minimum rest counter of this new unit is set to 0.
-	 *       | this.setMinRestCounter(0)
-	 * @effect The automatic rest counter of this new unit is set to 0.
-	 *       | this.setAutRestCounter(0)
-	 * @effect The default behaviour of this new unit is off.
-	 *       | this.setDefaultBehaviour(false)
+	 * @post    The orientation of this new unit is Pi/2.
+	 * 			| new.getOrientation().fuzzyEquals(Math.PI/2.0)
+	 * @effect  The activityStatus of this new unit is set to default.
+	 *       	| this.setActivityStatus("default")
+	 * @effect  The current velocity of this new unit is set to the the zero vector.
+	 *          | this.setCurrentVelocity(new PositionVector(0, 0, 0))
+	 * @effect  The targeted next position of this new unit is set to it's current position.
+	 *          | this.setNextPosition(new PositionVector(this.getUnitPosition().getXArgument(),this.getUnitPosition().getYArgument(),
+	 *		    | 			this.getUnitPosition().getZArgument()));
+	 * @effect  The destination of this new unit is set to it's current position..
+	 *       	| this.setDestination(this.getUnitPosition().getXArgument(),this.getUnitPosition().getYArgument(),
+	 *       	|		this.getUnitPosition().getZArgument()))
+	 * @effect 	The sprinting status of this new unit is set to false by default.
+	 *       	| this.setSprint(false)
+	 * @effect  The work time of this new unit is reseted.
+	 *       	| this.resetWorkTime()
+	 * @effect  The attack time of this new unit is set to 0.
+	 *       	| this.setAttackTime(0)
+	 * @effect  The minimum rest counter of this new unit is set to 0.
+	 *       	| this.setMinRestCounter(0)
+	 * @effect  The automatic rest counter of this new unit is set to 0.
+	 *       	| this.setAutRestCounter(0)
+	 * @effect  The default behaviour of this new unit is set false.
+	 *       	| this.setDefaultBehaviour(false)
 	 * @throws  IllegalArgumentException
 	 * 		    The given name is not a valid name.
 	 * 			| ! isValidName(name)
+	 * @throws	IllegalArgumentException
+	 * 			The given position is not a valid position for this unit.
+	 * 			| !isValidUnitPosition(position)
 	 */
 	public Unit(PositionVector position, String name, int strength, int agility, int toughness,int weight) 
 													throws IllegalArgumentException {
@@ -195,7 +160,6 @@ public class Unit {
 		this.setDestination(new PositionVector(this.getUnitPosition().getXArgument(),this.getUnitPosition().getYArgument(),
 				this.getUnitPosition().getZArgument()));
 		this.setSprint(false);
-		this.setDoubleStamina((double)this.getMaxStamina());
 		this.resetWorkTime();
 		this.setAttackTime(0);
 		this.setMinRestCounter(0);
@@ -219,12 +183,16 @@ public class Unit {
 	 * @param  unitPosition
 	 *         The unitPosition to check.
 	 * @return 
-	 *       | result == ((position.getXArgument() >= 0) && (position.getYArgument() >= 0) && (position.getZArgument() >= 0) &&
-	 *       					(position.getXArgument() < 50) && (position.getYArgument() < 50) && (position.getZArgument() < 50))
+	 *       | result == (Util.fuzzyGreaterThanOrEqualTo(position.getXArgument(),0) 
+	 *       |				&& Util.fuzzyGreaterThanOrEqualTo(position.getYArgument(),0) 
+	 *       |					&& Util.fuzzyGreaterThanOrEqualTo(position.getZArgument(),0)
+	 *       |						&& (position.getXArgument() < 50) && (position.getYArgument() < 50) && (position.getZArgument() < 50))
 	*/
 	private static boolean isValidUnitPosition(PositionVector position) {
-		return ((position.getXArgument() >= 0) && (position.getYArgument() >= 0) && (position.getZArgument() >= 0) &&
-				      		(position.getXArgument() < 50) && (position.getYArgument() < 50) && (position.getZArgument() < 50));
+		return (Util.fuzzyGreaterThanOrEqualTo(position.getXArgument(),0) 
+					&& Util.fuzzyGreaterThanOrEqualTo(position.getYArgument(),0) 
+						&& Util.fuzzyGreaterThanOrEqualTo(position.getZArgument(),0)
+				      		&& (position.getXArgument() < 50) && (position.getYArgument() < 50) && (position.getZArgument() < 50));
 	}
 	
 	/**
@@ -234,13 +202,13 @@ public class Unit {
 	 *         The new unitPosition for this unit.
 	 * @post   The unitPosition of this new unit is equal to
 	 *         the given unitPosition.
-	 *       | new.getUnitPosition() == position
+	 *       	| new.getUnitPosition().equals(position)
 	 * @throws IllegalArgumentException
 	 *         The given unitPosition is not a valid unitPosition for any
 	 *         unit.
-	 *       | ! isValidUnitPosition(getUnitPosition())
+	 *       	| ! isValidUnitPosition(getUnitPosition())
 	 */
-	@Raw
+	@Raw @Model
 	private void setUnitPosition(PositionVector position) 
 			throws IllegalArgumentException {
 		if (! isValidUnitPosition(position))
@@ -255,7 +223,7 @@ public class Unit {
 		
 	/**
 	 * Return the cubePosition of this unit.
-	 * @effect
+	 * @return	The position of the cube on which this unit is standing.
 	 * 			| result == {(int) this.getUnitPosition().getXArgument(), (int) this.getUnitPosition().getYArgument(),
 	 * 			|										(int) this.getUnitPosition().getZArgument()}
 	 */
@@ -284,15 +252,40 @@ public class Unit {
 	 * @param  name
 	 *         The name to check.
 	 * @return	True if and only if, the name is longer than 2 character, starts with an uppercase letter and only contains valid
-	 * 			characters.
-	 *       | result == ((name != null) && (name.length() >= 2) && (Character.isLetter(name.charAt(0))) && (Character.isUpperCase(name.charAt(0)))
-	 *       | 																								&& (validCharInName(name))
+	 * 			characters and the given name is not null.
+	 *       	| result == ((name != null) && (name.length() >= 2) && (Character.isLetter(name.charAt(0))) && (Character.isUpperCase(name.charAt(0)))
+	 *       	| 																						&& (validCharInName(name))
 	*/
 	private static boolean isValidName(String name) {
 		return ((name != null) && (name.length() >= 2) && (Character.isLetter(name.charAt(0))) && (Character.isUpperCase(name.charAt(0)))
 				&& (validCharInName(name)));
 	}
 	
+	/**
+	 * Checks whether the given name consists of valid characters.
+	 * @param name	The given name.
+	 * @return	Return true if and only if the name consists of  allowed characters.
+	 * 			| ArrayList<Character> validCharactersList = new ArrayList<Character>()
+	 *			| char[] validCharacters = getValidCharacters()
+	 *			| for(char character: validCharacters){
+	 *		  	|	validCharactersList.add(character)
+	 *	  		|  }
+	 *			| List<Character> characters = new ArrayList<>()
+	 *			| int k = 0
+	 *			| while(k < name.length()) {
+	 *			|	characters.add(name.charAt(k))
+	 *			|	k++
+	 *			| }
+	 *			| int i = 0
+	 *			| boolean result = true
+	 *			| while ((i < characters.size()) && (result == true)) {
+	 *			|	if (! validCharactersList.contains(Character.toLowerCase(characters.get(i)))) {
+	 *			|		result = false
+	 *			|	}
+	 *			|	i++
+	 *			| }
+	 * 			| result == result 
+	 */
 	private static boolean validCharInName(String name) {
 		ArrayList<Character> validCharactersList = new ArrayList<Character>();
 		char[] validCharacters = getValidCharacters();
@@ -318,6 +311,10 @@ public class Unit {
 	
 	private static char[] validCharacters = {' ','"','\'','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'};
 	
+	/**
+	 * Return the array containing the legal characters for names.
+	 */
+	@Basic @Immutable
 	private static char[] getValidCharacters() {
 		return validCharacters;
 	}
@@ -329,22 +326,19 @@ public class Unit {
 	 *         The new name for this unit.
 	 * @post   The name of this new unit is equal to
 	 *         the given name.
-	 *       | new.getName() == name
+	 *       | new.getName().equals(name)
 	 * @throws IllegalArgumentException
 	 *         The given name is not a valid name for any
 	 *         unit.
 	 *       | ! isValidName(getName())
 	 */
-	@Raw
+	@Raw @Model
 	private void setName(String name) 
 			throws IllegalArgumentException {
 		if (! isValidName(name))
 			throw new IllegalArgumentException();
 		this.name = name;
 	}
-	
-	
-	
 	
 	/**
 	 * Variable registering the name of this unit.
@@ -355,7 +349,7 @@ public class Unit {
 	 * Rename this unit to a given name.
 	 * @param  name
 	 * 		   The new name for this unit.
-	 * @effect ...
+	 * @effect This unit's name is set to the given name
 	 * 			| this.setName(name)
 	 */
 	public void changeName(String name) {
@@ -391,11 +385,11 @@ public class Unit {
 	 * 
 	 * @param  weight
 	 *         The new weight for this unit.
-	 * @post   If the given weight is a valid weight for any unit,
-	 *         the weight of this new unit is equal to the given
-	 *         weight.
-	 *       | if (isValidWeight(weight))
-	 *       |   then new.getWeight() == weight
+	 * @post    If the given weight is a valid weight for any unit,
+	 *          the weight of this new unit is equal to the given
+	 *          weight.
+	 *       	| if (isValidWeight(weight))
+	 *       	|   then new.getWeight() == weight
 	 * @post	If the given weight is more than 200, this unit's weight is set to 200.
 	 * 			| if (weight > 200)
 	 * 			| 	this.weight = 200
@@ -447,11 +441,11 @@ public class Unit {
 	 * 
 	 * @param  strength
 	 *         The new strength for this unit.
-	 * @post   If the given strength is a valid strength for any unit,
-	 *         the strength of this new unit is equal to the given
-	 *         strength.
-	 *       | if (isValidStrength(strength))
-	 *       |   then new.getStrength() == strength
+	 * @post    If the given strength is a valid strength for any unit,
+	 *          the strength of this new unit is equal to the given
+	 *          strength.
+	 *       	| if (isValidStrength(strength))
+	 *       	|   then new.getStrength() == strength
 	 * @post	If the given strength is bigger than 200, this unit's strength is set to 200.
 	 * 			| if (strength > 200)
 	 * 			| 	this.strength = 200
@@ -476,8 +470,6 @@ public class Unit {
 	 */
 	private int strength;
 
-	
-	
 	/**
 	 * Return the agility of this unit.
 	 */
@@ -504,11 +496,11 @@ public class Unit {
 	 * 
 	 * @param  agility
 	 *         The new agility for this unit.
-	 * @post   If the given agility is a valid agility for any unit,
-	 *         the agility of this new unit is equal to the given
-	 *         agility.
-	 *       | if (isValidAgility(agility))
-	 *       |   then new.getAgility() == agility
+	 * @post    If the given agility is a valid agility for any unit,
+	 *          the agility of this new unit is equal to the given
+	 *          agility.
+	 *       	| if (isValidAgility(agility))
+	 *       	|   then new.getAgility() == agility
 	 * @post	If the given agility is bigger than 200, this unit's agility is set to 200.
 	 * 			| if (agility > 200) 
 	 *			|	this.agility = 200
@@ -533,9 +525,6 @@ public class Unit {
 	 */
 	private int agility;
 
-	
-	
-	
 	/**
 	 * Return the toughness of this unit.
 	 */
@@ -562,11 +551,11 @@ public class Unit {
 	 * 
 	 * @param  toughness
 	 *         The new toughness for this unit.
-	 * @post   If the given toughness is a valid toughness for any unit,
-	 *         the toughness of this new unit is equal to the given
-	 *         toughness.
-	 *       | if (isValidToughness(toughness))
-	 *       |   then new.getToughness() == toughness
+	 * @post    If the given toughness is a valid toughness for any unit,
+	 *          the toughness of this new unit is equal to the given
+	 *          toughness.
+	 *       	| if (isValidToughness(toughness))
+	 *       	|   then new.getToughness() == toughness
 	 * @post	If the given toughness is bigger than 200, this unit's toughness is set to 200.
 	 * 			| if (toughness > 200)
 	 * 			| 	this.toughness = 200
@@ -574,7 +563,7 @@ public class Unit {
 	 * 			| if (toughness < 1)
 	 * 			| 	this.toughness = 1
 	 */
-	@Raw
+	@Raw 
 	public void setToughness(int toughness) {
 		if (isValidToughness(toughness))
 			this.toughness = toughness;
@@ -606,7 +595,7 @@ public class Unit {
 	 * @param  maxHP
 	 *         The maxHP to check.
 	 * @return 
-	 *       | result == calcMaxHPStam(getWeight(), getToughness())
+	 *       | result == (maxHP == calcMaxHPStam(getWeight(), getToughness()))
 	*/
 	private boolean isValidMaxHP(int maxHP) {
 		return (maxHP == calcMaxHPStam(getWeight(), getToughness()));
@@ -624,7 +613,7 @@ public class Unit {
 	 *         maxHP.
 	 *       | new.getMaxHP() == maxHP
 	 */
-	@Raw
+	@Raw @Model
 	private void setMaxHP(int maxHP) {
 		assert isValidMaxHP(maxHP);
 		this.maxHP = maxHP;
@@ -651,7 +640,7 @@ public class Unit {
 	 * @param  maxStamina
 	 *         The maxStamina to check.
 	 * @return 
-	 *       | result == calcMaxHPStam(this.getWeight(), this.getToughness())
+	 *       | result == (maxStamina == calcMaxHPStam(this.getWeight(), this.getToughness()))
 	*/
 	private boolean isValidMaxStamina(int maxStamina) {
 		return (maxStamina == calcMaxHPStam(this.getWeight(), this.getToughness()));
@@ -664,12 +653,12 @@ public class Unit {
 	 *         The new maxStamina for this unit.
 	 * @pre    The given maxStamina must be a valid maxStamina for any
 	 *         unit.
-	 *       | isValidMaxStamina(maxStamina)
+	 *       	| isValidMaxStamina(maxStamina)
 	 * @post   The maxStamina of this unit is equal to the given
 	 *         maxStamina.
-	 *       | new.getMaxStamina() == maxStamina
+	 *       	| new.getMaxStamina() == maxStamina
 	 */
-	@Raw
+	@Raw @Model
 	private void setMaxStamina(int maxStamina) {
 		assert isValidMaxStamina(maxStamina);
 		this.maxStamina = maxStamina;
@@ -701,7 +690,7 @@ public class Unit {
 	/**
 	 * Return the currentHP of this unit.
 	 */
-	@Basic @Raw
+	@Basic
 	public int getCurrentHP() {
 		return this.currentHP;
 	}
@@ -747,7 +736,7 @@ public class Unit {
 	/**
 	 * Return the currentStamina of this unit.
 	 */
-	@Basic @Raw
+	@Basic
 	public int getCurrentStamina() {
 		return this.currentStamina;
 	}
@@ -788,8 +777,6 @@ public class Unit {
 	 */
 	private int currentStamina;
 	
-	
-	
 	/**
 	 * Return the orientation of this unit.
 	 */
@@ -804,13 +791,11 @@ public class Unit {
 	 * 
 	 * @param  orientation
 	 *         The new orientation for this unit.
-	 * @post   If the given orientation is a valid orientation for any unit,
-	 *         the orientation of this new unit is equal to the given
-	 *         orientation.
+	 * @post   The orientation of this unit is equal to the given orientation modulo 2*PI.
 	 *       | if (isValidOrientation(orientation))
-	 *       |   then new.getOrientation() == orientation
+	 *       |   then new.getOrientation() == orientation %(2*Math.PI)
 	 */
-	@Raw
+	@Raw @Model
 	private void setOrientation(double orientation) {
 			this.orientation =  orientation %(2*Math.PI);
 	}
@@ -825,13 +810,16 @@ public class Unit {
 	 * Let time advance for this unit for a given amount of time.
 	 * @param time	The given amount of time.
 	 * @effect	This unit's activity status is checked.
+	 * 			If this unit is doing nothing and it's default behaviour is activated, it'll do a random action.
 	 * 			If the unit is attacking, it continues it's attack.
 	 * 			If it's minimum rest counter isn't zero yet, it'll continue to rest until the counter reaches zero, then it'll 
 	 * 			continue or start with it's planned activity.
+	 * 			If it  has gone more than 3 minutes without resting, it'll start to rest and the automatic rest counter is reset.
 	 * 			If it didn't reach it's destination or next position yet or it's activity status is move, it moves.
-	 * 			If it's activity status is wor, it works.
+	 * 			If it's activity status is work, it works.
 	 * 			If it's activity status is rest, it rests.
-	 * 			If it's activity status is default and default behaviour is activated, is starts doing a random activity.
+	 * 			If it's activity status is default and default behaviour is not activated, is starts doing a random activity and it's 
+	 * 			automatic restcounter increases by the given time.
 	 * @throws	IllegalArgumentException
 	 * 			Time is either negative or equal to or greater then 0.2s.
 	 */
@@ -893,6 +881,7 @@ public class Unit {
 		}
 	}
 	
+	// algorithm was given, so no documentation
 	/**
 	 * Gives this unit a given destination and determines which adjacent cube he has to move to start it's journey.
 	 * @param destination	The given destination.
@@ -950,11 +939,15 @@ public class Unit {
 	/**
 	 * Calculate the walking speed of this unit for a given position in an adjacent cube.
 	 * @param targetPosition	The target position, which is in an adjacent cube of this unit's position
-	 * @return	The walking speed, calculated by a formula using the current position of the unit and the target position.
+	 * @return	If the z difference between the target position and this unit's current position is -1, half of this unit's
+	 * 			base speed is returned as walking speed.
 	 * 			| if ((targetPosition.getZArgument() - this.getUnitPosition().getZArgument()) == -1) {
 	 * 			|		result == 0.5*(this.getBaseSpeed())
-	 * 			| else if((targetPosition.getZArgument() - this.getUnitPosition().getZArgument()) == 1) {
+	 * @return	If the z difference between the target position and this unit's current position is +1, 1.2 times this unit's
+	 * 			base speed is returned as walking speed.
+	 * 			| if((targetPosition.getZArgument() - this.getUnitPosition().getZArgument()) == 1) {
 	 * 			|			result == 1.2*(this.getBaseSpeed())
+	 * @return	Else this unit's base speed is it's walking speed.
 	 * 			| return this.getBaseSpeed()
 	 * @throws	IllegalArgumentException
 	 * 			The given target position is not in an adjacent cube of the unit's position.
@@ -969,7 +962,7 @@ public class Unit {
 		if (zDifference == -1) {
 			return 0.5*baseSpeed;
 		}
-		if(zDifference == -1) {
+		if(zDifference == 1) {
 				return 1.2*(baseSpeed);
 		}
 		return baseSpeed;
@@ -979,9 +972,15 @@ public class Unit {
 	 * Check whether a given position is located in an adjacent cube of the position of this unit.
 	 * @param position	The position to check.
 	 * @return	True if and only if the given position is in an adjacent cube of this unit's position.
-	 * 			| result == (((Math.abs(this.getCubePosition()[0] - (int) position.getXArgument()) == 1) && (Math.abs(this.getCubePosition()[1] - (int) position.getYArgument()) == 0) && (Math.abs(this.getCubePosition()[2] - (int) position.getZArgument()) == 0))
-				|	|| (((Math.abs(this.getCubePosition()[0] - (int) position.getXArgument()) == 0) && (Math.abs(this.getCubePosition()[1] - (int) position.getYArgument()) == 1) && (Math.abs(this.getCubePosition()[2] - (int) position.getZArgument()) == 0))
-				|		|| (((Math.abs(this.getCubePosition()[0] - (int) position.getXArgument()) == 0) && (Math.abs(this.getCubePosition()[1] - (int) position.getYArgument()) == 0) && (Math.abs(this.getCubePosition()[2] - (int) position.getZArgument()) == 1)))
+	 * 			| result == (((Math.abs(this.getCubePosition()[0] - (int) position.getXArgument()) == 1) 
+	 * 			|				|| (Math.abs(this.getCubePosition()[0] - (int) position.getXArgument()) == 0) 
+	 * 			|					|| (Math.abs(this.getCubePosition()[0] - (int) position.getXArgument()) == -1))
+	 *			|		&& (((Math.abs(this.getCubePosition()[1] - (int) position.getYArgument()) == 1) 
+	 *			|				|| (Math.abs(this.getCubePosition()[1] - (int) position.getYArgument()) == 0) 
+	 *			|					|| (Math.abs(this.getCubePosition()[1] - (int) position.getYArgument()) == -1))
+	 *			|			&& (((Math.abs(this.getCubePosition()[2] - (int) position.getZArgument()) == 1) 
+	 *			|				|| (Math.abs(this.getCubePosition()[2] - (int) position.getZArgument()) == 0) 
+	 *			|					|| (Math.abs(this.getCubePosition()[2] - (int) position.getZArgument()) == 1)))
 	 */
 	public boolean isValidAdjacent(PositionVector position) {
 		int positionX = (int) position.getXArgument();
@@ -999,10 +998,13 @@ public class Unit {
 		return false;
 	}
 	
+	// recheck for redundant code and more correct specification
 	/**
-	 * Let's this unit move to the centre of the adjacent cube of which a position in it is given, if the unit is not already moving
+	 * Let's this unit move to the center of the adjacent cube of which a position in it is given, if the unit is not already moving
 	 * and the given position does not equal the unit's position.
 	 * @param position	A combination of an x,y, and z unit PositionVector.
+	 * @effect	This unit's activity status is set to 'move'.
+	 * 			| this.setActivityStatus("move")
 	 * @effect	The current velocity of this unit is set by using the given position.
 	 * 			| this.setCurrentVelocity(calcVelocity(this.calcWalkingSpeed(PositionVector.sum(this.getUnitPosition(),position)),
 	 * 			|						this.getUnitPosition(),centrePosition(PositionVector.sum(this.getUnitPosition(), position))))
@@ -1063,16 +1065,13 @@ public class Unit {
 		return (new PositionVector(speed*xDifference/distance, speed*yDifference/distance, speed*zDifference/distance));
 	}
 	
-	
-	
-	
-	
-	
 	/**
-	 * Calculates the centre position of the cube that contains the given position.
+	 * Calculates the center position of the cube that contains the given position.
 	 * @param position	The given position.
-	 * @return	The centre position as a vector.
-	 * 			| result == new PositionVector(
+	 * @return	The center position as a vector.
+	 * 			| result == new PositionVector(Math.floor(position.getXArgument()) + (cubeLength/2),
+	 * 			|								Math.floor(position.getYArgument()) + (cubeLength/2),
+	 * 			|									Math.floor(position.getZArgument()) + (cubeLength/2))
 	 */
 	private static PositionVector centrePosition(PositionVector position) {
 		double x = Math.floor(position.getXArgument()) + (cubeLength/2);
@@ -1125,7 +1124,7 @@ public class Unit {
 	 *         unit.
 	 *       | ! isValidActivityStatus(getActivityStatus())
 	 */
-	@Raw
+	@Raw @Model
 	private void setActivityStatus(String activityStatus) 
 			throws IllegalArgumentException {
 		if (! isValidActivityStatus(activityStatus))
@@ -1141,6 +1140,11 @@ public class Unit {
 	
 	/**
 	 * Return the current velocity of this unit, according to it's sprint status.
+	 * @return	Return double the normal velocity if the unit is sprinting.
+	 * 			| if(this.getSprint() == true)
+	 * 			| 	result == PositionVector.multiplyBy(2, this.currentVelocity)
+	 * @return	Return the normal velocity is this unit is not sprinting.
+	 * 			| result == this.currentVelocity
 	 */
 	public PositionVector getCurrentVelocity() {
 		if(this.getSprint() == true){
@@ -1149,6 +1153,14 @@ public class Unit {
 		else{
 			return this.currentVelocity;
 		}
+	}
+	
+	/**
+	 * Return the current velocity of this unit.
+	 */
+	@Basic
+	public PositionVector getCurrentVelocityBasic() {
+		return this.currentVelocity;
 	}
 	
 	/**
@@ -1177,7 +1189,7 @@ public class Unit {
 	 *         unit.
 	 *       | ! isValidCurrentVelocity(getCurrentVelocity())
 	 */
-	@Raw
+	@Raw @Model
 	private void setCurrentVelocity(PositionVector currentVelocity) 
 			throws IllegalArgumentException {
 		if (! isValidCurrentVelocity(currentVelocity))
@@ -1226,7 +1238,7 @@ public class Unit {
 	 *         unit.
 	 *       | (! isValidNextPosition(getNextPosition()))
 	 */
-	@Raw
+	@Raw @Model
 	private void setNextPosition(PositionVector nextPosition) 
 			throws IllegalArgumentException {
 		if (! isValidNextPosition(nextPosition)) {
@@ -1275,7 +1287,7 @@ public class Unit {
 	 *         unit.
 	 *       | ! isValidDestination(getDestination())
 	 */
-	@Raw
+	@Raw @Model
 	private void setDestination(PositionVector destination) 
 			throws IllegalArgumentException {
 		if (! isValidDestination(destination))
@@ -1331,6 +1343,7 @@ public class Unit {
 	 * 			| 	this.sprint(time) }
 	 * 			| else {this.walk(time)}
 	 */
+	@Model
 	private void move(double time) {
 		if(this.getSprint() == true) {
 			this.sprint(time);
@@ -1343,7 +1356,7 @@ public class Unit {
 	 * @param time	the given amount of time.
 	 * @effect	The unit moves at double speed until it's stamina is depleted.
 	 * 			| this.miniMove(sprintTime, 2)
-	 * @effect	the unit's stamina is decreased for the amount of time that it sprints.
+	 * @effect	The unit's stamina is decreased for the amount of time that it sprints.
 	 * 			| this.decreaseStamina(sprintTime)
 	 * @effect	If the unit runs out of stamina, it continues by walking for the resting amount of time and sprint mode is turned off.
 	 * 			| this.walk(walkTime)
@@ -1362,7 +1375,10 @@ public class Unit {
 	/**
 	 * Calculates the amount of time this unit is able to sprint of a given amount of time
 	 * @param time	The given amount of time
-	 * @return	The amount of time this unit is able to sprint.
+	 * @return	If this unit can sprint longer than or equal to the given time, the given time is returned.
+	 * 			| if(this.getCurrentStamina()*0.1 >= time)
+	 * 			| 	result == time
+	 * @return	If this unit can't sprint for the whole given time, the amount that he can sprint is returned.
 	 * 			| result ==  (this.getCurrentStam()*0.1) %(time + 0.00001)
 	 */
 	public double getSprintTime(double time){
@@ -1380,8 +1396,6 @@ public class Unit {
 	 * @param sprintTime	The given sprint time.
 	 * @effect	The stamina in double type of this unit is set to the difference of the old stamina and the lost stamina.
 	 * 			| this.setDoubleStamina(this.getDoubleStamina() - sprintTime/0.1)
-	 * @effect	The stamina of this unit is set to the rounded up double type stamina of this unit.
-	 * 			| this.setCurrentStamina((int) Math.round(this.getDoubleStamina()))
 	 * @effect	If this unit's stamina is depleted, the sprint mode is set off.
 	 * 			| this.setSprint(false)
 	 */
@@ -1410,13 +1424,15 @@ public class Unit {
 	 * @effect	This unit's orientation is updated according to the direction it'll move.
 	 * 			| this.setOrientation( Math.atan2(this.getCurrentVelocity().getYArgument(),
 	 * 			|												 this.getCurrentVelocity().getXArgument()))
-	 * @effect	This unit covered a distance by moving at it's speed times multiplier for the given time.
+	 * @effect	This unit covers a distance by moving at it's speed times multiplier for the given time, 
+	 * 			when it doesn't reach it's next position within the given time.
 	 * 			| this.setUnitPosition(PositionVector.sum(this.getUnitPosition(), PositionVector.multiplyBy(dt, this.getCurrentVelocity())))
-	 * @effect	This unit has reached it's next position if time was sufficient to reach it.
+	 * @effect	This unit has reached it's next position if time was sufficient to reach it, it's activity status is set to
+	 * 			default and it's current velocity to the zero vector. 
 	 * 			| this.setUnitPosition(new PositionVector(this.getNextPosition().getXArgument(),this.getNextPosition().getYArgument(),
-				|	this.getNextPosition().getZArgument())))
-				| 	this.setActivityStatus("default");
-				| 	this.setCurrentVelocity(new PositionVector(0, 0, 0));
+	 *			|	this.getNextPosition().getZArgument())))
+	 *			| this.setActivityStatus("default");
+	 *			| this.setCurrentVelocity(new PositionVector(0, 0, 0));
 	 * @effect	In case the unit has time left after reaching it's next position, time advances.
 	 * 			| this.advanceTime(restingTime)
 	 * @effect	The automatic rest counter is increased with the given amount of time.
@@ -1438,8 +1454,6 @@ public class Unit {
 			}
 		}
 		else {
-			//PositionVector displacement = PositionVector.multiplyBy(dt, this.getCurrentVelocity());
-			//PositionVector newPosition = PositionVector.sum(this.getUnitPosition(), displacement);
 			this.setUnitPosition(PositionVector.sum(this.getUnitPosition(), PositionVector.multiplyBy(dt, this.getCurrentVelocity())));
 		}
 		this.increaseAutRestCounter(dt);
@@ -1448,7 +1462,7 @@ public class Unit {
 	/**
 	 * Return the double type stamina of this unit.
 	 */
-	@Basic
+	@Basic @Raw
 	private double getDoubleStamina() {
 		return this.doubleStamina;
 	}
@@ -1479,7 +1493,7 @@ public class Unit {
 	 *       | new.getDoubleStamina() == doubleStamina
 	 *       | this.setCurrentStamina((int) (Math.ceil(doubleStamina)))
 	 */
-
+	@Model
 	private void setDoubleStamina(double doubleStamina) {
 		assert isValidDoubleStamina(doubleStamina);
 		this.doubleStamina = doubleStamina;
@@ -1495,7 +1509,7 @@ public class Unit {
 	/**
 	 * Return the work time of this unit.
 	 */
-	@Basic @Raw
+	@Basic
 	private double getWorkTime() {
 		return this.workTime;
 	}
@@ -1539,7 +1553,7 @@ public class Unit {
 	 * @effect	The work time of this unit is set to it's maximum.
 	 * 			| this.setWorkTime(500/this.getStrength())
 	 */
-	@Raw
+	@Model
 	private void resetWorkTime() {
 		this.setWorkTime(500/this.getStrength());
 	}
@@ -1581,6 +1595,7 @@ public class Unit {
 	 * @effect	The automatic rest counter is increased with the given amount of time.
 	 * 			| this.increaseAutRestCounter(time)
 	 */
+	@Model
 	private void doWork(double time) {
 		if (this.getWorkTime() < time) {
 			 double restingTime = time - this.getWorkTime();
@@ -1602,7 +1617,7 @@ public class Unit {
 	 * Make this unit attack another unit that's occupying this unit's cube or an adjacent cube when it's not already fighting and does
 	 * nothing when already fighting.
 	 * @param target	The target unit.
-	 * @effect	This unit's minimum resttime is set to zero.
+	 * @effect	This unit's minimum rest time is set to zero.
 	 * 			| this.setMinRestCounter(0)
 	 * @effect	This unit's activity status is set to "attack".
 	 * 			| this.setActivityStatus("attack")
@@ -1649,6 +1664,7 @@ public class Unit {
 	 * @effect	The automatic rest counter is increased with the given amount of time.
 	 * 			| this.increaseAutRestCounter(time)
 	 */
+	@Model
 	private void doAttack(double time) {
 		if (this.getAttackTime() < time) {
 			 double restingTime = time - this.getAttackTime();
@@ -1699,7 +1715,7 @@ public class Unit {
 	 *         unit.
 	 *       | ! isValidAttackTime(getAttackTime())
 	 */
-	@Raw
+	@Raw @Model
 	private void setAttackTime(double attackTime) 
 			throws IllegalArgumentException {
 		if (! isValidAttackTime(attackTime))
@@ -1712,7 +1728,7 @@ public class Unit {
 	 * @effect	This unit's attack time is set to 1.
 	 * 			| this.setAttackTime(1)
 	 */
-	@Raw
+	@Raw @Model
 	private void resetAttackTime() {
 		this.setAttackTime(1);
 	}
@@ -1725,7 +1741,7 @@ public class Unit {
 	/**
 	 * Makes this unit react to an attack of an enemy by either dodging the attack, blocking it or simply taking damage.
 	 * @param enemy	The enemy attacking.
-	 * @effect	This unit's minimum resttime is set to zero.
+	 * @effect	This unit's minimum rest time is set to zero.
 	 * 			| this.setMinRestCounter(0)
 	 * @effect	This unit's activity status is set to default.
 	 * 			| this.setActivityStatus("default")
@@ -1740,7 +1756,7 @@ public class Unit {
 	 * 			| if(this.dodge() == true) {
 	 * 			| 	this.moveToAdjacent(this.randomAdjacent())}
 	 * @effect	If dodging failed, this unit tries to block the incoming attack by chance, resulting in no damage if successful,
-	 * 			else this unit's hitpoints are decreased by the enemy's strength level or is set to 0 if this unit runs out of hitpoints. 
+	 * 			else this unit's hitpoints are decreased by the enemy's strength level.
 	 * 			| if(this.block() == false) {
 	 * 			| 	if(enemy.getStrength() > this.getCurrentHP()) {
 	 *			|		this.decreaseHP(this.getCurrentHP())}
@@ -1773,6 +1789,7 @@ public class Unit {
 	 * @return	True if and only if this unit made it by chance (according to given formula).
 	 * 		| result == (new Random()).nextDouble() <= (0.20*(this.getAgility()/enemy.getAgility()))
 	 */
+	@Model
 	private boolean dodge(Unit enemy) {
 		double chance = 0.20*(this.getAgility()/enemy.getAgility());
 		Random generator = new Random();
@@ -1780,46 +1797,47 @@ public class Unit {
 		if (random <= chance) {
 			return true;
 		}
-		return false;
+		else
+			return false;
 	}
 	
 	/**
 	 * Return a random unit vector, giving the direction to a random adjacent cube of this unit.
 	 * @return	A random unit vector.
-	 * 			| result == 
+	 * 			| result == new PositionVector(Random.nextInt(3)-1, Random.nextInt(3)-1, Random.nextInt(3)-1)
 	 */
 	private PositionVector randomAdjacent() {
-		PositionVector xPlus = new PositionVector(1, 0, 0);
-		PositionVector yPlus = new PositionVector(0, 1, 0);
-		PositionVector zPlus = new PositionVector(0, 0, 1);
-		PositionVector xMin = new PositionVector(-1, 0, 0);
-		PositionVector yMin = new PositionVector(0, -1, 0);
-		PositionVector zMin = new PositionVector(0, 0, -1);
-		PositionVector[] possibilities = {xPlus,yPlus,zPlus,xMin,yMin,zMin};
 		Random generator = new Random();
-		int random = generator.nextInt(possibilities.length - 1);
-		if (this.isValidAdjacent(PositionVector.sum(this.getUnitPosition(), possibilities[random]))) {
-			return possibilities[random];
-		}
-		else {
-			return randomAdjacent();
-		}
+		return new PositionVector(generator.nextInt(3)-1, generator.nextInt(3)-1, generator.nextInt(3)-1);
+//		PositionVector xPlus = new PositionVector(1, 0, 0);
+//		PositionVector yPlus = new PositionVector(0, 1, 0);
+//		PositionVector zPlus = new PositionVector(0, 0, 1);
+//		PositionVector xMin = new PositionVector(-1, 0, 0);
+//		PositionVector yMin = new PositionVector(0, -1, 0);
+//		PositionVector zMin = new PositionVector(0, 0, -1);
+//		PositionVector[] possibilities = {xPlus,yPlus,zPlus,xMin,yMin,zMin};
+//		Random generator = new Random();
+//		int random = generator.nextInt(possibilities.length - 1);
+//		if (this.isValidAdjacent(PositionVector.sum(this.getUnitPosition(), possibilities[random]))) {
+//			return possibilities[random];
+//		}
+//		else {
+//			return randomAdjacent();
+//		}
 	}
 	
 	/**
 	 * Return if this unit is able to block an attack of the given enemy at this moment.
 	 * @param enemy	The given enemy.
 	 * @return	True if and only if this unit made it by chance (according to given formula).
-	 * 			| 
+	 * 			| result == (new Random()).nextDouble() <= 0.25*((this.getStrength() + this.getAgility())/(enemy.getStrength() + enemy.getAgility()))
 	 */
+	@Model
 	private boolean block(Unit enemy) {
 		double chance = 0.25*((this.getStrength() + this.getAgility())/(enemy.getStrength() + enemy.getAgility()));
 		Random generator = new Random();
 		double random = generator.nextDouble();
-		if (random <= chance) {
-			return true;
-		}
-		return false;
+		return (random <= chance);
 	}
 	
 	/**
@@ -1830,19 +1848,15 @@ public class Unit {
 	 * @effect	This unit's hitpoints are set to the difference of it's old hitpoints and the given amount.
 	 * 			| this.setDoubleHP(this.getDoubleHP() - amount)
 	 */
+	@Model
 	private void decreaseHP(int amount) {
 		assert (amount <= this.getCurrentHP());
 		
 		this.setDoubleHP(this.getDoubleHP() - amount);
 	}
 	
-	// moveToAdjacent ALWAYS has first priority before doing anything else
-	// heal1HP ALWAYS has priority except when attacked
-	// implement this in advanceTime
-	
 	/**
-	 * Command this unit to rest.
-	 * @effect	Does nothing if this unit is fully rested.
+	 * Command this unit to rest if it's not already fully rested or attacking.
 	 * @effect	This unit's activity status is set to 'rest'.
 	 * 			| this.setActivityStatus("rest")
 	 * @effect	This unit's minimum rest counter is reset.
@@ -1887,6 +1901,7 @@ public class Unit {
 	 * @effect	The automatic rest counter is increased with the given amount of time.
 	 * 			| this.increaseAutRestCounter(time)
 	 */
+	@Model
 	private void doRest(double time) throws IllegalArgumentException, IllegalStateException {
 		if(this.getActivityStatus() != "rest") {
 			throw new IllegalStateException();
@@ -1913,17 +1928,16 @@ public class Unit {
 	/**
 	 * Regenerate this unit's hitpoints for a given amount of time and give back the unused time.
 	 * @param time	The given amount of time.
-	 * @return	The unused time.
-	 * 			| if(this.getMaxHP() == this.getDoubleHP()) {
+	 * @return	If this unit already has all of it's hitpoints, the given time is returned.
+	 * 			| if(this.getMaxHP() == this.getDoubleHP())
 	 * 			|		result == time
-	 *			|		}
-	 *			| double recoveryRate = (this.getToughness()/200.0)/0.2
-	 *			| double neededTime = (this.getMaxHP() - this.getCurrentDoubleHP())/recoveryRate
-	 *			| if(neededTime <= time) {
+	 * @return	If this unit needs less time than the given time to fully recover it's hitpoints, the resting amount of time
+	 * 			is returned.
+	 * 			If this unit needs all the given time to (partially) recover hitpoints, 0 is returned.
+	 *			| if((this.getMaxHP() - this.getCurrentDoubleHP())/double recoveryRate = (this.getToughness()/200.0)/0.2 <= time)
 	 *			|	this.setCurrentDoubleHP(this.getMaxHP())
-	 *			|	result == (time - neededTime)
-	 *			| }
-	 *			| this.setCurrentDoubleHP(this.getDoubleHP()+time*recoveryRate)
+	 *			|	result == (time - (this.getMaxHP() - this.getCurrentDoubleHP())/double recoveryRate = (this.getToughness()/200.0)/0.2)
+	 *			| this.setCurrentDoubleHP(this.getDoubleHP()+time*double recoveryRate = (this.getToughness()/200.0)/0.2)
 	 *			| result == 0
 	 *@throws	IllegalArgumentException
 	 *			The given amount of time is negative.
@@ -1981,6 +1995,7 @@ public class Unit {
 	 *       | new.getDoubleHP() == doubleHP
 	 *       | this.setDoubleHP((int) (Math.ceil(doubleHP)))
 	 */
+	@Model
 	private void setDoubleHP(double doubleHP) {
 		assert isValidDoubleHP(doubleHP);
 		this.doubleHP = doubleHP;
@@ -1996,17 +2011,16 @@ public class Unit {
 	/**
 	 * Regenerate this unit's stamina for a given amount of time and give back the unused time.
 	 * @param time	The given amount of time.
-	 * @return	The unused time.
-	 * 			| if(this.getMaxStamina() == this.getDoubleStamina()) {
+	 * @return	If this unit already has all of it's stamina, the given time is returned.
+	 * 			| if(this.getMaxStamina() == this.getDoubleStamina())
 	 * 			|		result == time
-	 *			|		}
-	 *			| double recoveryRate = (this.getToughness()/100)/0.2
-	 *			| double neededTime = (this.getMaxStamina() - this.getCurrentDoubleStamina())/recoveryRate
-	 *			| if(neededTime <= time) {
+	 * @return	If this unit needs less time than the given time to fully recover it's stamina, the resting amount of time
+	 * 			is returned.
+	 * 			If this unit needs all the given time to (partially) recover stamina, 0 is returned.
+	 *			| if((this.getMaxStamina() - this.getCurrentDoubleStamina())/(this.getToughness()/100)/0.2 <= time)
 	 *			|	this.setCurrentDoubleStamina(this.getMaxStamina())
-	 *			|	result == (time - neededTime)
-	 *			| }
-	 *			| this.setCurrentDoubleStamina(this.getDoubleStamina()+time*recoveryRate)
+	 *			|	result == (time - (this.getMaxStamina() - this.getCurrentDoubleStamina())/(this.getToughness()/100)/0.2)
+	 *			| this.setCurrentDoubleStamina(this.getDoubleStamina()+time*(this.getToughness()/100)/0.2)
 	 *			| result == 0
 	 *@throws	IllegalArgumentException
 	 *			The given amount of time is negative.
@@ -2033,7 +2047,7 @@ public class Unit {
 	/**
 	 * Return the minimum rest counter of this unit.
 	 */
-	@Basic @Raw
+	@Basic
 	public double getMinRestCounter() {
 		return this.minRestCounter;
 	}
@@ -2064,6 +2078,7 @@ public class Unit {
 	 *         unit.
 	 *       | ! isValidMinRestCounter(getMinRestCounter())
 	 */
+	@Model
 	private void setMinRestCounter(double minRestCounter) 
 			throws IllegalArgumentException {
 		if (! isValidMinRestCounter(minRestCounter))
@@ -2074,8 +2089,9 @@ public class Unit {
 	/**
 	 * Reset the minimum rest counter.
 	 * @post	The minimum rest counter is set to the amount of time it takes this unit to recover 1 hitpoint.
-	 * 			| this.setMinRestCounter(0.2/(this.getToughness()/200))
+	 * 			| this.setMinRestCounter(0.2/(this.getToughness()/200.0))
 	 */
+	@Model
 	private void resetMinRestCounter() {
 		this.setMinRestCounter(0.2/(this.getToughness()/200.0));
 	}
@@ -2143,7 +2159,7 @@ public class Unit {
 	 *         unit.
 	 *       | ! isValidAutRestCounter(getAutRestCounter())
 	 */
-	@Raw
+	@Raw @Model
 	private void setAutRestCounter(double autRestCounter) 
 			throws IllegalArgumentException {
 		if (! isValidAutRestCounter(autRestCounter)) {
@@ -2157,6 +2173,7 @@ public class Unit {
 	 * @effect	The automatic rest counter is set to zero.
 	 * 			| this.setAutRestCounter(0)
 	 */
+	@Model
 	private void resetAutRestCounter() {
 		this.setAutRestCounter(0);
 	}
@@ -2166,14 +2183,11 @@ public class Unit {
 	 * @param time	The given amount of time.
 	 * @effect	The automatic rest counter is set at the sum of the old time and the given time.
 	 * 			| this.setAutRestCounter(this.getAutRestCounter() + time)
-	 * @effect	If the counter is larger than 3 minutes, it is reset and the unit automatically rests.
-	 * 			| if(this.getAutRestCounter() >= 180) {
-	 * 			| 	this.resetAutRestCounter()
-	 * 			| 	this.rest()
 	 * @throws IllegalArgumentException
 	 * 			The given time is negative.
 	 * 			| (time < 0)
 	 */
+	@Model
 	private void increaseAutRestCounter(double time) throws IllegalArgumentException {
 		if(time < 0) {
 			throw new IllegalArgumentException();
@@ -2207,7 +2221,7 @@ public class Unit {
 	 *         unit.
 	 *       | ! isValidDefaultBehaviour(getDefaultBehaviour())
 	 */
-	@Raw
+	@Raw @Model
 	private void setDefaultBehaviour(boolean defaultBehaviour) {
 		this.defaultBehaviour = defaultBehaviour;
 	}
@@ -2238,6 +2252,17 @@ public class Unit {
 	/**
 	 * Make this unit do a random action of either walking, sprinting, working, resting or moving.
 	 * 
+	 * @effect 	This unit either moves to a random position, starts to work or starts to rest.
+	 * 			| Random generator = new Random()
+	 *	 		|  int action = generator.nextInt(3)
+	 *			|  if (action == 0)
+	 *			|  	int sprint = generator.nextInt(2)
+	 *			|  	this.moveTo(new PositionVector(generator.nextDouble()*49.99, generator.nextDouble()*49.99, generator.nextDouble()*49.99));
+	 *			|  	this.setSprint(sprint == 1)
+	 *			|  if (action == 1)
+	 *			|  	this.work()
+	 *			|  if (action == 2) 
+	 *			|  	this.rest()
 	 */
 	private void randomBehaviour() throws IllegalArgumentException{
 		Random generator = new Random();
