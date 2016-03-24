@@ -83,20 +83,18 @@ public class Unit {
 	 * @param  agility		The agility for this new unit.
 	 * @param  toughness	The toughness for this new unit.
 	 * @param  weight		The weight for this new unit.
-	 * @pre		The given decimal stamina must be a valid decimal stamina for any unit.
-	 *       	| isValidDoubleStamina(decimal stamina)
 	 * @effect	The position of this new unit is set to the cube centre of the given position.
 	 * 			| this.setUnitPosition(centrePosition(position))
 	 * @post    The name of this new unit equals the given name.
 	 * 			| new.getName().equals(name)
 	 * @effect	The strength of this new unit is set to the given strength.
-	 * 			| this.setStrength(this.makeInitialAttValue(strength))
+	 * 			| this.setStrength(makeInitialAttValue(strength))
 	 * @effect	The agility of this new unit is set to the given agility.
-	 * 			| this.setAgility(this.makeInitialAttValue(agility))
+	 * 			| this.setAgility(makeInitialAttValue(agility))
 	 * @effect	The toughness of this new unit is set to the given toughness.
-	 * 			| this.setToughness(this.makeInitialAttValue(toughness))
+	 * 			| this.setToughness(makeInitialAttValue(toughness))
 	 * @effect	The weight of this new unit is set to the given weight.
-	 * 			| this.setWeight(this.makeInitialAttValue(weight))
+	 * 			| this.setWeight(makeInitialAttValue(weight))
 	 * @effect  The maximum hitpoints of this new unit are calculated and set.
 	 * 			| setMaxHP(calcMaxHPStam(getWeight(), getToughness()))
 	 * @effect  The maximum stamina of this new unit is set.
@@ -143,10 +141,10 @@ public class Unit {
 		}
 		this.setUnitPosition(centrePosition(position));
 		this.setName(name);
-		this.setStrength(this.makeInitialAttValue(strength));
-		this.setAgility(this.makeInitialAttValue(agility));
-		this.setToughness(this.makeInitialAttValue(toughness));
-		this.setWeight(this.makeInitialAttValue(weight));
+		this.setStrength(makeInitialAttValue(strength));
+		this.setAgility(makeInitialAttValue(agility));
+		this.setToughness(makeInitialAttValue(toughness));
+		this.setWeight(makeInitialAttValue(weight));
 		this.setMaxHP(calcMaxHPStam(getWeight(), getToughness()));
 		this.setMaxStamina(calcMaxHPStam(getWeight(), getToughness()));
 		this.setDoubleHP(this.getMaxHP());
@@ -351,6 +349,7 @@ public class Unit {
 	 * @effect This unit's name is set to the given name
 	 * 			| this.setName(name)
 	 */
+	@Raw
 	public void changeName(String name) {
 		this.setName(name);
 	}
@@ -372,6 +371,7 @@ public class Unit {
 	 * @return 
 	 *       | result == ((weight >= 1) && (weight <= 200) && (weight >= ((this.getStrength()+this.getAgility())/2)))
 	*/
+	@Raw
 	private boolean isValidWeight(int weight) {
 		int strength = this.getStrength();
 		int agility = this.getAgility();
@@ -397,6 +397,7 @@ public class Unit {
 	 * 			| if (weight < (this.getStrength()+this.getAgility())/2)
 	 * 			| 	this.weight = (this.getStrength()+this.getAgility())/2
 	 */
+	@Raw
 	public void setWeight(int weight) {
 		if (isValidWeight(weight))
 			this.weight = weight;
@@ -596,8 +597,9 @@ public class Unit {
 	 * @return 
 	 *       | result == (maxHP == calcMaxHPStam(getWeight(), getToughness()))
 	*/
+	@Raw
 	private boolean isValidMaxHP(int maxHP) {
-		return (maxHP == calcMaxHPStam(getWeight(), getToughness()));
+		return (maxHP == calcMaxHPStam(this.getWeight(), this.getToughness()));
 	}
 	
 	/**
@@ -641,6 +643,7 @@ public class Unit {
 	 * @return 
 	 *       | result == (maxStamina == calcMaxHPStam(this.getWeight(), this.getToughness()))
 	*/
+	@Raw
 	private boolean isValidMaxStamina(int maxStamina) {
 		return (maxStamina == calcMaxHPStam(this.getWeight(), this.getToughness()));
 	}
@@ -678,18 +681,19 @@ public class Unit {
 	 * 			| isValidWeight(weight)
 	 * @pre     The toughness has to be a valid toughness.
 	 * 			| isValidToughness(toughness)
-	 * @effect  
-	 * 			| result == 200*((int) Math.ceil(this.getWeight()/100.0))*((int) Math.ceil(this.getToughness()/100.0))
+	 * @return	Return the maximum hitpoints calculated by the given formula.  
+	 * 			| result == 200*((int) Math.ceil(weight()/100.0))*((int) Math.ceil(toughness()/100.0))
 	 */
 	private int calcMaxHPStam(int weight, int toughness) {
 		assert ((isValidWeight(weight)) && (isValidToughness(toughness)));
-		return 200*((int) Math.ceil(this.getWeight()/100.0))*((int) Math.ceil(this.getToughness()/100.0));
+		
+		return 200*((int) Math.ceil(weight/100.0))*((int) Math.ceil(toughness/100.0));
 	}
 	
 	/**
 	 * Return the currentHP of this unit.
 	 */
-	@Basic
+	@Basic @Raw
 	public int getCurrentHP() {
 		return this.currentHP;
 	}
@@ -703,6 +707,7 @@ public class Unit {
 	 * @return 
 	 *       | result == ((currentHP <= this.getMaxHP()) && (currentHP >= 0))
 	*/
+	@Raw
 	private boolean isValidCurrentHP(int currentHP) {
 		return ((currentHP <= this.getMaxHP()) && (currentHP >= 0));
 	}
@@ -735,7 +740,7 @@ public class Unit {
 	/**
 	 * Return the currentStamina of this unit.
 	 */
-	@Basic
+	@Basic @Raw
 	public int getCurrentStamina() {
 		return this.currentStamina;
 	}
@@ -749,6 +754,7 @@ public class Unit {
 	 * @return 
 	 *       | result == ((currentStamina >= 0) && (currentStamina <= this.getMaxStamina()))
 	*/
+	@Raw
 	private boolean isValidCurrentStamina(int currentStamina) {
 		return ((currentStamina >= 0) && (currentStamina <= this.getMaxStamina()));
 	}
@@ -804,7 +810,6 @@ public class Unit {
 	 */
 	private double orientation;
 	
-	//////////////////////////////////////////////////////// update informal /////////////////////////////
 	/**
 	 * Let time advance for this unit for a given amount of time.
 	 * @param time	The given amount of time.
@@ -818,7 +823,7 @@ public class Unit {
 	 * 			If it's activity status is work, it works.
 	 * 			If it's activity status is rest, it rests.
 	 * 			If it's activity status is default and default behaviour is not activated, is starts doing a random activity and it's 
-	 * 			automatic restcounter increases by the given time.
+	 * 			automatic rest counter increases by the given time.
 	 * @throws	IllegalArgumentException
 	 * 			Time is either negative or equal to or greater then 0.2s.
 	 */
@@ -967,6 +972,7 @@ public class Unit {
 		return baseSpeed;
 	}
 	
+	//what if it's outside the game world?
 	/**
 	 * Check whether a given position is located in an adjacent cube of the position of this unit.
 	 * @param position	The position to check.
@@ -1100,11 +1106,11 @@ public class Unit {
 	 * @param  activityStatus
 	 *         The activityStatus to check.
 	 * @return 
-	 *       | result == ((this.getActivityStatus() == "move") || (this.getActivityStatus() =="work") || 
-			 |					(this.getActivityStatus() == "rest") || (this.getActivityStatus() == "attack") ||
-			 |						 (this.getActivityStatus() == "default"));
-	*/
-	private boolean isValidActivityStatus(String activityStatus) {
+	 *       | result == ((activityStatus.equals("move") || (activityStatus.equals("work")) || 
+	 *		 |					(activityStatus.equals("rest")) || (activityStatus.equals("attack")) ||
+	 *		 |						 (activityStatus.equals("default"))))
+	 */
+	private static boolean isValidActivityStatus(String activityStatus) {
 		return ((activityStatus.equals("move") || (activityStatus.equals("work")) || 
 					(activityStatus.equals("rest")) || (activityStatus.equals("attack")) ||
 						(activityStatus.equals("default"))));
@@ -1157,7 +1163,7 @@ public class Unit {
 	/**
 	 * Return the current velocity of this unit.
 	 */
-	@Basic
+	@Basic @Raw
 	public PositionVector getCurrentVelocityBasic() {
 		return this.currentVelocity;
 	}
@@ -1380,6 +1386,7 @@ public class Unit {
 	 * @return	If this unit can't sprint for the whole given time, the amount that he can sprint is returned.
 	 * 			| result ==  (this.getCurrentStam()*0.1) %(time + 0.00001)
 	 */
+	@Raw
 	public double getSprintTime(double time){
 		double availableSprint = (this.getCurrentStamina()*0.1);
 		if(availableSprint >= time){
@@ -1393,12 +1400,16 @@ public class Unit {
 	/**
 	 * Decreases the stamina of this unit for a given sprint time.
 	 * @param sprintTime	The given sprint time.
+	 * @pre 	The sprint time has to be bigger or equals to 0.
+	 * 			| sprintTime >= 0
 	 * @effect	The stamina in double type of this unit is set to the difference of the old stamina and the lost stamina.
 	 * 			| this.setDoubleStamina(this.getDoubleStamina() - sprintTime/0.1)
 	 * @effect	If this unit's stamina is depleted, the sprint mode is set off.
 	 * 			| this.setSprint(false)
 	 */
 	private void decreaseStam(double sprintTime) {
+		assert(sprintTime >= 0);
+		
 		double lostStamina = sprintTime/0.1;
 		this.setDoubleStamina(this.getDoubleStamina() - lostStamina);
 		if (this.getCurrentStamina() == 0) {
@@ -1474,6 +1485,7 @@ public class Unit {
 	 * @return 
 	 *       | result == (doubleStamina > 0) && (doubleStamina <= this.getMaxStamina())
 	*/
+	@Raw
 	private boolean isValidDoubleStamina(double doubleStamina) {
 		return ((doubleStamina > 0) && (doubleStamina <= this.getMaxStamina()));
 	}
@@ -1492,7 +1504,7 @@ public class Unit {
 	 *       | new.getDoubleStamina() == doubleStamina
 	 *       | this.setCurrentStamina((int) (Math.ceil(doubleStamina)))
 	 */
-	@Model
+	@Model @Raw
 	private void setDoubleStamina(double doubleStamina) {
 		assert isValidDoubleStamina(doubleStamina);
 		this.doubleStamina = doubleStamina;
@@ -1508,7 +1520,7 @@ public class Unit {
 	/**
 	 * Return the work time of this unit.
 	 */
-	@Basic
+	@Basic @Raw
 	private double getWorkTime() {
 		return this.workTime;
 	}
@@ -1569,6 +1581,7 @@ public class Unit {
 	 * @effect	This unit's work time is reset.
 	 * 			| this.resetWorkTime()
 	 */
+	@Raw
 	public void work() {
 		this.setActivityStatus("work");
 		this.resetWorkTime();
@@ -1800,29 +1813,34 @@ public class Unit {
 			return false;
 	}
 	
+	//let produce also diagonal adjacent positions
 	/**
 	 * Return a random unit vector, giving the direction to a random adjacent cube of this unit.
-	 * @return	A random unit vector.
+	 * @return	A random unit vector that is a valid adjacent position.
 	 * 			| result == new PositionVector(Random.nextInt(3)-1, Random.nextInt(3)-1, Random.nextInt(3)-1)
 	 */
 	private PositionVector randomAdjacent() {
-		Random generator = new Random();
-		return new PositionVector(generator.nextInt(3)-1, generator.nextInt(3)-1, generator.nextInt(3)-1);
-//		PositionVector xPlus = new PositionVector(1, 0, 0);
-//		PositionVector yPlus = new PositionVector(0, 1, 0);
-//		PositionVector zPlus = new PositionVector(0, 0, 1);
-//		PositionVector xMin = new PositionVector(-1, 0, 0);
-//		PositionVector yMin = new PositionVector(0, -1, 0);
-//		PositionVector zMin = new PositionVector(0, 0, -1);
-//		PositionVector[] possibilities = {xPlus,yPlus,zPlus,xMin,yMin,zMin};
 //		Random generator = new Random();
-//		int random = generator.nextInt(possibilities.length - 1);
-//		if (this.isValidAdjacent(PositionVector.sum(this.getUnitPosition(), possibilities[random]))) {
-//			return possibilities[random];
-//		}
-//		else {
-//			return randomAdjacent();
-//		}
+//		PositionVector adjacent = new PositionVector(generator.nextInt(3)-1, generator.nextInt(3)-1, generator.nextInt(3)-1);
+//		while (! this.isValidAdjacent(adjacent))
+//			adjacent = new PositionVector(generator.nextInt(3)-1, generator.nextInt(3)-1, generator.nextInt(3)-1);
+//		return adjacent;
+		PositionVector zero = new PositionVector(0, 0, 0);
+		PositionVector xPlus = new PositionVector(1, 0, 0);
+		PositionVector yPlus = new PositionVector(0, 1, 0);
+		PositionVector zPlus = new PositionVector(0, 0, 1);
+		PositionVector xMin = new PositionVector(-1, 0, 0);
+		PositionVector yMin = new PositionVector(0, -1, 0);
+		PositionVector zMin = new PositionVector(0, 0, -1);
+		PositionVector[] possibilities = {zero,xPlus,yPlus,zPlus,xMin,yMin,zMin};
+		Random generator = new Random();
+		int random = generator.nextInt(possibilities.length - 1);
+		if (this.isValidAdjacent(PositionVector.sum(this.getUnitPosition(), possibilities[random]))) {
+			return possibilities[random];
+		}
+		else {
+			return randomAdjacent();
+		}
 	}
 	
 	/**
@@ -1867,8 +1885,9 @@ public class Unit {
 	 * 			| (this.getActivityStatus() == "attack") || ( (this.getActivityStatus() == "move") &&
 	 * 			|														this.getUnitPosition() != this.getNextPosition())
 	 */
+	@Raw
 	public void rest() throws IllegalStateException{
-		if(!(this.getActivityStatus() == "attack")){
+		if(!(this.getActivityStatus().equals("attack"))){
 			if((this.getDoubleHP() != this.getMaxHP()) || (this.getDoubleStamina() != this.getMaxStamina())){
 				this.setActivityStatus("rest");
 				this.resetMinRestCounter();
@@ -1927,6 +1946,8 @@ public class Unit {
 	/**
 	 * Regenerate this unit's hitpoints for a given amount of time and give back the unused time.
 	 * @param time	The given amount of time.
+	 * @pre 	The given time needs to be bigger than or equal to 0.
+	 * 			| time >= 0
 	 * @return	If this unit already has all of it's hitpoints, the given time is returned.
 	 * 			| if(this.getMaxHP() == this.getDoubleHP())
 	 * 			|		result == time
@@ -1942,10 +1963,10 @@ public class Unit {
 	 *			The given amount of time is negative.
 	 *			| time < 0
 	 */
+	@Raw
 	private double recoverHP(double time)throws IllegalArgumentException {
-		if(time < 0){
-			throw new IllegalArgumentException();
-		}
+		assert(time >= 0);
+		
 		if(this.getMaxHP() == this.getDoubleHP()) {
 			return time;
 			}
@@ -1976,6 +1997,7 @@ public class Unit {
 	 * @return 
 	 *       | result == (doubleHP >= 0) && (doubleHP <= this.getMaxHP())
 	*/
+	@Raw
 	private boolean isValidDoubleHP(double doubleHP) {
 		return ((doubleHP >= 0) && (doubleHP <= this.getMaxHP()));
 	}
@@ -1994,7 +2016,7 @@ public class Unit {
 	 *       | new.getDoubleHP() == doubleHP
 	 *       | this.setDoubleHP((int) (Math.ceil(doubleHP)))
 	 */
-	@Model
+	@Model @Raw
 	private void setDoubleHP(double doubleHP) {
 		assert isValidDoubleHP(doubleHP);
 		this.doubleHP = doubleHP;
@@ -2010,6 +2032,8 @@ public class Unit {
 	/**
 	 * Regenerate this unit's stamina for a given amount of time and give back the unused time.
 	 * @param time	The given amount of time.
+	 * @pre 	The given time needs to be bigger than or equal to 0.
+	 * 			| time >= 0
 	 * @return	If this unit already has all of it's stamina, the given time is returned.
 	 * 			| if(this.getMaxStamina() == this.getDoubleStamina())
 	 * 			|		result == time
@@ -2025,10 +2049,10 @@ public class Unit {
 	 *			The given amount of time is negative.
 	 *			| time < 0
 	 */
+	@Raw
 	private double recoverStamina(double time)throws IllegalArgumentException {
-		if(time < 0){
-			throw new IllegalArgumentException();
-		}
+		assert(time >= 0);
+		
 		if(this.getMaxStamina() == this.getDoubleStamina()) {
 			return time;
 			}
@@ -2046,7 +2070,7 @@ public class Unit {
 	/**
 	 * Return the minimum rest counter of this unit.
 	 */
-	@Basic
+	@Basic @Raw
 	public double getMinRestCounter() {
 		return this.minRestCounter;
 	}
@@ -2060,6 +2084,7 @@ public class Unit {
 	 * @return 
 	 *       | result == minRestCounter <= 0.2/(this.getToughness()/200)) || (minRestCounter >= 0)
 	*/
+	@Raw
 	private boolean isValidMinRestCounter(double minRestCounter) {
 		return ((minRestCounter <= 0.2/(this.getToughness()/200.0)) || (minRestCounter >= 0));
 	}
@@ -2077,7 +2102,7 @@ public class Unit {
 	 *         unit.
 	 *       | ! isValidMinRestCounter(getMinRestCounter())
 	 */
-	@Model
+	@Model @Raw
 	private void setMinRestCounter(double minRestCounter) 
 			throws IllegalArgumentException {
 		if (! isValidMinRestCounter(minRestCounter))
@@ -2090,7 +2115,7 @@ public class Unit {
 	 * @post	The minimum rest counter is set to the amount of time it takes this unit to recover 1 hitpoint.
 	 * 			| this.setMinRestCounter(0.2/(this.getToughness()/200.0))
 	 */
-	@Model
+	@Model @Raw
 	private void resetMinRestCounter() {
 		this.setMinRestCounter(0.2/(this.getToughness()/200.0));
 	}
@@ -2107,6 +2132,7 @@ public class Unit {
 	 * 			The given time is greater than the minimum rest counter.
 	 * 			| ((this.getMinRestCounter() - time) < 0)
 	 */
+	@Raw
 	private void decreaseMinRestCounter(double time) throws IllegalArgumentException {
 		if(time < 0) {
 			throw new IllegalArgumentException();
@@ -2172,7 +2198,7 @@ public class Unit {
 	 * @effect	The automatic rest counter is set to zero.
 	 * 			| this.setAutRestCounter(0)
 	 */
-	@Model
+	@Model @Raw
 	private void resetAutRestCounter() {
 		this.setAutRestCounter(0);
 	}
@@ -2185,8 +2211,8 @@ public class Unit {
 	 * @throws IllegalArgumentException
 	 * 			The given time is negative.
 	 * 			| (time < 0)
-	 */
-	@Model
+	*/
+	@Model @Raw
 	private void increaseAutRestCounter(double time) throws IllegalArgumentException {
 		if(time < 0) {
 			throw new IllegalArgumentException();
@@ -2235,6 +2261,7 @@ public class Unit {
 	 * @effect	The default behaviour is set true.
 	 * 			| this.setDefaultBehaviour(true)
 	 */
+	@Raw
 	public void startDefaultBehaviour() {
 		this.setDefaultBehaviour(true);
 	}
@@ -2244,6 +2271,7 @@ public class Unit {
 	 * @effect	The default behaviour is set false.
 	 * 			| this.setDefaultBehaviour(false)
 	 */
+	@Raw
 	public void stopDefaultBehaviour() {
 		this.setDefaultBehaviour(false);
 	}
@@ -2263,6 +2291,7 @@ public class Unit {
 	 *			|  if (action == 2) 
 	 *			|  	this.rest()
 	 */
+	@Raw
 	private void randomBehaviour() throws IllegalArgumentException{
 		Random generator = new Random();
 		int action = generator.nextInt(3);
@@ -2289,7 +2318,7 @@ public class Unit {
 	 * @return	If the given attribute value is in the range of 25 and 100 (both inclusively), the original value is returned.
 	 * 			| result == attributeValue
 	 */
-	private int makeInitialAttValue(int attributeValue){
+	private static int makeInitialAttValue(int attributeValue){
 		if (attributeValue > 100)
 			return 100;
 		else if (attributeValue < 25)
