@@ -82,8 +82,11 @@ public class PositionVector {
 	 * 			| result == new PositionVector(vector1.getXArgument()+vector2.getXArgument(),
 	 * 			|								vector1.getYArgument()+vector2.getYArgument(),
 	 * 			|									vector1.getZArgument()+vector2.getZArgument()))
+	 * @throws	NullPointerException
+	 * 			At least one of the given vectors is not effective.
+	 * 			| (vector1 == null) || (vector2 == null)
 	 */
-	public static PositionVector sum(PositionVector vector1, PositionVector vector2) {
+	public static PositionVector sum(PositionVector vector1, PositionVector vector2) throws NullPointerException {
 		return (new PositionVector(vector1.getXArgument()+vector2.getXArgument(),
 					vector1.getYArgument()+vector2.getYArgument(),
 						vector1.getZArgument()+vector2.getZArgument()));
@@ -95,8 +98,11 @@ public class PositionVector {
 	 * @param vector	The vector.
 	 * @return	A position vector that's the result of multiplying the given vector with the given number.
 	 * 			| result == new PositionVector(vector.getXArgument()*a, vector.getYArgument()*a, vector.getZArgument()*a)
+	 * @throws	NullPointerException
+	 * 			The vector is not effective.
+	 * 			| vector == null
 	 */
-	public static PositionVector multiplyBy(double a, PositionVector vector) {
+	public static PositionVector multiplyBy(double a, PositionVector vector) throws NullPointerException {
 		double x = vector.getXArgument()*a;
 		double y = vector.getYArgument()*a;
 		double z = vector.getZArgument()*a;
@@ -109,8 +115,11 @@ public class PositionVector {
 	 * @return	True if and only if they are equal.
 	 * 			| return == (this.getXArgument() == position.getXArgument()) && (this.getYArgument() == position.getYArgument())
 	 * 			| 			&& (this.getYArgument() == position.getYArgument())	
+	 * @throws	NullPointerException
+	 * 			The vector is not effective.
+	 * 			| vector == null
 	 */
-	public boolean equals(PositionVector position) {
+	public boolean equals(PositionVector position) throws NullPointerException{
 		return ((this.getXArgument() == position.getXArgument()) && (this.getYArgument() == position.getYArgument())
 				&& (this.getZArgument() == position.getZArgument()));
 	}
@@ -122,8 +131,11 @@ public class PositionVector {
 	 * @return 	A vector with the argument differences of the given position vectors as its arguments.
 	 * 			| result == new PositionVector (position1.getXArgument()-position2.getXArgument(), position1.getYArgument()-position2.getYArgument(), 
 	 *			|						position1.getZArgument()-position2.getZArgument())
+	 * @throws	NullPointerException
+	 * 			At least one of the given vectors is not effective.
+	 * 			| (position == null) || (target == null)
 	 */
-	public static PositionVector calcDifferenceVector(PositionVector position, PositionVector target) {
+	public static PositionVector calcDifferenceVector(PositionVector position, PositionVector target) throws NullPointerException {
 		return (new PositionVector (position.getXArgument()-target.getXArgument(), position.getYArgument()-target.getYArgument(), 
 				position.getZArgument()-target.getZArgument()));
 	}
@@ -136,8 +148,11 @@ public class PositionVector {
 	 * 			| result == Math.sqrt(Math.pow(2,calcDifferenceVector(position1, position2).getXArgument()) 
 	 * 			| 									+ Math.pow(2,calcDifferenceVector(position1, position2).getYArgument())
 	 * 			| 											 + Math.pow(2,calcDifferenceVector(position1, position2).getZArgument()))
+	 * @throws	NullPointerException
+	 * 			At least one of the given vectors is not effective.
+	 * 			| (position == null) || (target == null)
 	 */
-	public static double calcDistance(PositionVector position, PositionVector target) {
+	public static double calcDistance(PositionVector position, PositionVector target) throws NullPointerException {
 		PositionVector difference = PositionVector.calcDifferenceVector(position, target);
 		double xDifference = difference.getXArgument();
 		double yDiffference = difference.getYArgument();

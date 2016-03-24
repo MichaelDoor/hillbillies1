@@ -26,6 +26,9 @@ public class Facade implements IFacade{
 		catch (IllegalArgumentException exc){
 			throw new ModelException();
 		}
+		catch (NullPointerException exc){
+			throw new ModelException();
+		}
 	}
 
 	@Override
@@ -53,6 +56,9 @@ public class Facade implements IFacade{
 		catch (IllegalArgumentException exc){
 			throw new ModelException();
 		}
+		catch (NullPointerException exc){
+			throw new ModelException();
+		}
 	}
 
 	@Override
@@ -62,12 +68,7 @@ public class Facade implements IFacade{
 
 	@Override
 	public void setWeight(Unit unit, int newValue) throws ModelException {
-		try{
-			unit.setWeight(newValue);
-		}
-		catch (IllegalArgumentException exc){
-			throw new ModelException();
-		}
+		unit.setWeight(newValue);
 	}
 
 	@Override
@@ -77,12 +78,8 @@ public class Facade implements IFacade{
 
 	@Override
 	public void setStrength(Unit unit, int newValue) throws ModelException {
-		try{
-			unit.setStrength(newValue);
-		}
-		catch (IllegalArgumentException exc){
-			throw new ModelException();
-		}
+		unit.setStrength(newValue);
+
 	}
 
 	@Override
@@ -92,12 +89,7 @@ public class Facade implements IFacade{
 
 	@Override
 	public void setAgility(Unit unit, int newValue) throws ModelException {
-		try{
-			unit.setAgility(newValue);
-		}
-		catch (IllegalArgumentException exc){
-			throw new ModelException();
-		}
+		unit.setAgility(newValue);
 	}
 
 	@Override
@@ -107,23 +99,12 @@ public class Facade implements IFacade{
 
 	@Override
 	public void setToughness(Unit unit, int newValue) throws ModelException {
-		try {
-			unit.setToughness(newValue);
-		}
-		catch (IllegalArgumentException exc){
-			throw new ModelException();
-		}
-		
+			unit.setToughness(newValue);	
 	}
 
 	@Override
 	public int getMaxHitPoints(Unit unit) throws ModelException {
-		try{
 			return unit.getMaxHP();
-		}
-		catch (IllegalArgumentException exc){
-			throw new ModelException();
-		}
 	}
 
 	@Override
@@ -157,6 +138,12 @@ public class Facade implements IFacade{
 			unit.moveToAdjacent((new PositionVector(dx, dy, dz)));
 		}
 		catch (IllegalArgumentException exc){
+			throw new ModelException();
+		}
+		catch (IllegalStateException exc){
+			throw new ModelException();
+		}
+		catch (NullPointerException exc){
 			throw new ModelException();
 		}
 	}
@@ -202,12 +189,19 @@ public class Facade implements IFacade{
 		catch (IllegalArgumentException exc){
 			throw new ModelException("Move problem");
 		}
+		catch (NullPointerException exc){
+			throw new ModelException("Move problem");
+		}
 	}
 
 	@Override
 	public void work(Unit unit) throws ModelException {
-		unit.work();
-		
+		try{
+			unit.work();
+		}
+		catch (IllegalStateException exc){
+			throw new ModelException();
+		}
 	}
 
 	@Override
@@ -222,6 +216,12 @@ public class Facade implements IFacade{
 			defender.defend(attacker);
 		}
 		catch (IllegalStateException exc){
+			throw new ModelException("fight problem");
+		}
+		catch (IllegalArgumentException exc){
+			throw new ModelException("fight problem");
+		}
+		catch (NullPointerException exc){
 			throw new ModelException("fight problem");
 		}
 	}

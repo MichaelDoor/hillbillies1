@@ -70,7 +70,7 @@ import be.kuleuven.cs.som.annotate.*;
  *         unit.
  *       | isValidAutRestCounter(getAutRestCounter())
  * @author Michaël Dooreman
- * @version	0.18
+ * @version	0.19
  */
 public class Unit {
 	
@@ -133,12 +133,12 @@ public class Unit {
 	 * @throws	IllegalArgumentException
 	 * 			The given position is not a valid position for this unit.
 	 * 			| !isValidUnitPosition(position)
+	 * @throws	NullPointerException
+	 * 			The position is not effective.
+	 * 			| position == null
 	 */
 	public Unit(PositionVector position, String name, int strength, int agility, int toughness,int weight) 
-													throws IllegalArgumentException {
-		if((! isValidName(name)) || (!isValidUnitPosition(position))) {
-			throw new IllegalArgumentException();
-		}
+													throws IllegalArgumentException, NullPointerException {
 		this.setUnitPosition(centrePosition(position));
 		this.setName(name);
 		this.setStrength(makeInitialAttValue(strength));
@@ -184,8 +184,11 @@ public class Unit {
 	 *       |				&& Util.fuzzyGreaterThanOrEqualTo(position.getYArgument(),0) 
 	 *       |					&& Util.fuzzyGreaterThanOrEqualTo(position.getZArgument(),0)
 	 *       |						&& (position.getXArgument() < 50) && (position.getYArgument() < 50) && (position.getZArgument() < 50))
+	 * @throws	NullPointerException
+	 * 			The position is not effective.
+	 * 			| position == null
 	*/
-	private static boolean isValidUnitPosition(PositionVector position) {
+	private static boolean isValidUnitPosition(PositionVector position) throws NullPointerException {
 		return (Util.fuzzyGreaterThanOrEqualTo(position.getXArgument(),0) 
 					&& Util.fuzzyGreaterThanOrEqualTo(position.getYArgument(),0) 
 						&& Util.fuzzyGreaterThanOrEqualTo(position.getZArgument(),0)
@@ -204,10 +207,13 @@ public class Unit {
 	 *         The given unitPosition is not a valid unitPosition for any
 	 *         unit.
 	 *       	| ! isValidUnitPosition(getUnitPosition())
+	 * @throws	NullPointerException
+	 * 			The position is not effective.
+	 * 			| position == null
 	 */
 	@Raw @Model
 	private void setUnitPosition(PositionVector position) 
-			throws IllegalArgumentException {
+			throws IllegalArgumentException, NullPointerException {
 		if (! isValidUnitPosition(position))
 			throw new IllegalArgumentException("Out of bounds!");
 		this.position = new PositionVector (position.getXArgument(), position.getYArgument(), position.getZArgument());
@@ -252,8 +258,11 @@ public class Unit {
 	 * 			characters and the given name is not null.
 	 *       	| result == ((name != null) && (name.length() >= 2) && (Character.isLetter(name.charAt(0))) && (Character.isUpperCase(name.charAt(0)))
 	 *       	| 																						&& (validCharInName(name))
+	 * @throws	NullPointerException
+	 * 			The name is not effective.
+	 * 			| name == null
 	*/
-	private static boolean isValidName(String name) {
+	private static boolean isValidName(String name) throws NullPointerException {
 		return ((name != null) && (name.length() >= 2) && (Character.isLetter(name.charAt(0))) && (Character.isUpperCase(name.charAt(0)))
 				&& (validCharInName(name)));
 	}
@@ -282,8 +291,11 @@ public class Unit {
 	 *			|	i++
 	 *			| }
 	 * 			| result == result 
+	 * @throws	NullPointerException
+	 * 			The name is not effective.
+	 * 			| name == null
 	 */
-	private static boolean validCharInName(String name) {
+	private static boolean validCharInName(String name) throws NullPointerException {
 		ArrayList<Character> validCharactersList = new ArrayList<Character>();
 		char[] validCharacters = getValidCharacters();
 		for(char character: validCharacters){
@@ -328,10 +340,13 @@ public class Unit {
 	 *         The given name is not a valid name for any
 	 *         unit.
 	 *       | ! isValidName(getName())
+	 * @throws	NullPointerException
+	 * 			The name is not effective.
+	 * 			| name == null
 	 */
 	@Raw @Model
 	private void setName(String name) 
-			throws IllegalArgumentException {
+			throws IllegalArgumentException, NullPointerException {
 		if (! isValidName(name))
 			throw new IllegalArgumentException();
 		this.name = name;
@@ -348,9 +363,15 @@ public class Unit {
 	 * 		   The new name for this unit.
 	 * @effect This unit's name is set to the given name
 	 * 			| this.setName(name)
+	 * @throws	IllegalArgumentException
+	 * 			The given name is not a valid name.
+	 * 			| ! isValidName(name)
+	 * @throws	NullPointerException	
+	 * 			The given name is not effective.
+	 * 			| name == null
 	 */
 	@Raw
-	public void changeName(String name) {
+	public void changeName(String name) throws IllegalArgumentException, NullPointerException{
 		this.setName(name);
 	}
 
@@ -889,12 +910,18 @@ public class Unit {
 	/**
 	 * Gives this unit a given destination and determines which adjacent cube he has to move to start it's journey.
 	 * @param destination	The given destination.
-	 * @effect	The unit's destination is set to the centre of the cube of the given destination.
+	 * @effect	The unit's destination is set to the center of the cube of the given destination.
 	 * 			| this.setDestination(centrePosition(destination))
 	 * @effect	Set this unit's next position to the adjacent cube he has to take on the path to it's destination.
 	 * 			| this.moveToAdjacent(adjacent)
+	 * @throws	IllegalArgumentException
+	 * 			The given destination is not a valid destination.
+	 * 			| ! isValidDestination(destination)
+	 * @throws	NullPointerException
+	 * 			The destination is not effective.
+	 * 			| destination == null
 	 */
-	public void moveTo(PositionVector destination) throws IllegalArgumentException {
+	public void moveTo(PositionVector destination) throws IllegalArgumentException, NullPointerException {
 		this.setDestination(centrePosition(destination));
 		int[] adjacent = {0,0,0};
 		int[] destinationCube = {(int) destination.getXArgument(), (int) destination.getYArgument(), (int) destination.getZArgument()};
@@ -956,8 +983,11 @@ public class Unit {
 	 * @throws	IllegalArgumentException
 	 * 			The given target position is not in an adjacent cube of the unit's position.
 	 * 			| !isAdjacent(targetPosition)
+	 * @throws	NullPointerException
+	 * 			The target position is not effective.
+	 * 			| targetPosition == null
 	 */
-	private double calcWalkingSpeed(PositionVector targetPosition) throws IllegalArgumentException {
+	private double calcWalkingSpeed(PositionVector targetPosition) throws IllegalArgumentException, NullPointerException {
 		if (! isValidAdjacent(targetPosition)) {
 			throw new IllegalArgumentException();
 		}
@@ -1026,8 +1056,12 @@ public class Unit {
 	 * @throws	IllegalStateException
 	 * 			This unit is already moving to an adjacent cube
 	 * 			| (this.getActivityStatus() == "move") &&(! this.getUnitPosition().equals(this.getNextPosition()))
+	 * @throws	NullPointerException
+	 * 			The given position is not effective.
+	 * 			| position == null
 	 */
-	public void moveToAdjacent(PositionVector position) throws IllegalArgumentException, IllegalStateException {
+	public void moveToAdjacent(PositionVector position) 
+			throws IllegalArgumentException, IllegalStateException, NullPointerException {
 		if(! position.equals(this.getUnitPosition())){
 			if((!isValidUnitPosition(PositionVector.sum(this.getUnitPosition(),position))) || 
 								(!isValidAdjacent(PositionVector.sum(this.getUnitPosition(),position)))) {
@@ -1060,8 +1094,12 @@ public class Unit {
 	 * 			| result == new PositionVector(speed*calcDifferenceVector(position1, position2).getXArgument()/calcDistance(position1,position2),
 	 * 			|					speed*calcDifferenceVector(position1, position2).getYArgument()/calcDistance(position1,position2),
 	 * 			|							speed*calcDifferenceVector(position1, position2).getZArgument()/calcDistance(position1,position2))
+	 * @throws	NullPointerException
+	 * 			The target position and/or the start position is not effective.
+	 * 			| (targetPosition == null) || (startPosition == null)
 	 */
-	private static PositionVector calcVelocity(double speed, PositionVector targetPosition, PositionVector startPosition) {
+	private static PositionVector calcVelocity(double speed, PositionVector targetPosition, PositionVector startPosition) 
+			throws NullPointerException {
 		PositionVector difference = PositionVector.calcDifferenceVector(targetPosition, startPosition);
 		double xDifference = difference.getXArgument();
 		double yDifference = difference.getYArgument();
@@ -1077,8 +1115,11 @@ public class Unit {
 	 * 			| result == new PositionVector(Math.floor(position.getXArgument()) + (cubeLength/2),
 	 * 			|								Math.floor(position.getYArgument()) + (cubeLength/2),
 	 * 			|									Math.floor(position.getZArgument()) + (cubeLength/2))
+	 * @throws	NullPointerException
+	 * 			The given position is not an effective.
+	 * 			| position == null
 	 */
-	private static PositionVector centrePosition(PositionVector position) {
+	private static PositionVector centrePosition(PositionVector position) throws NullPointerException{
 		double x = Math.floor(position.getXArgument()) + (cubeLength/2);
 		double y = Math.floor(position.getYArgument()) + (cubeLength/2);
 		double z = Math.floor(position.getZArgument()) + (cubeLength/2);
@@ -1128,10 +1169,13 @@ public class Unit {
 	 *         The given activityStatus is not a valid activityStatus for any
 	 *         unit.
 	 *       | ! isValidActivityStatus(getActivityStatus())
+	 * @throws	NullPointerException
+	 * 			The activity status is not effective.
+	 * 			| activityStatus == null
 	 */
 	@Raw @Model
 	private void setActivityStatus(String activityStatus) 
-			throws IllegalArgumentException {
+			throws IllegalArgumentException, NullPointerException {
 		if (! isValidActivityStatus(activityStatus))
 			throw new IllegalArgumentException();
 		this.activityStatus = activityStatus;
@@ -1193,10 +1237,13 @@ public class Unit {
 	 *         The given current velocity is not a valid current velocity for any
 	 *         unit.
 	 *       | ! isValidCurrentVelocity(getCurrentVelocity())
+	 * @throws	NullPointerException
+	 * 			The given velocity is not effective.
+	 * 			| currentVelocity == null
 	 */
 	@Raw @Model
 	private void setCurrentVelocity(PositionVector currentVelocity) 
-			throws IllegalArgumentException {
+			throws IllegalArgumentException, NullPointerException {
 		if (! isValidCurrentVelocity(currentVelocity))
 			throw new IllegalArgumentException();
 		this.currentVelocity = currentVelocity;
@@ -1242,10 +1289,13 @@ public class Unit {
 	 *         The given targeted adjacent position is not a valid targeted adjacent position for any
 	 *         unit.
 	 *       | (! isValidNextPosition(getNextPosition()))
+	 * @throws	NullPointerException
+	 * 			The next position is not effective.
+	 * 			| nextPosition == null
 	 */
 	@Raw @Model
 	private void setNextPosition(PositionVector nextPosition) 
-			throws IllegalArgumentException {
+			throws IllegalArgumentException, NullPointerException {
 		if (! isValidNextPosition(nextPosition)) {
 			throw new IllegalArgumentException();
 		}
@@ -1274,8 +1324,11 @@ public class Unit {
 	 *         The destination to check.
 	 * @return 
 	 *       | result == isValidUnitPosition(destination)
+	 * @throws	NullPointerException
+	 * 			The destination is not effective.
+	 * 			| destination == null
 	*/
-	private static boolean isValidDestination(PositionVector destination) {
+	private static boolean isValidDestination(PositionVector destination) throws NullPointerException{
 		return isValidUnitPosition(destination);
 	}
 	
@@ -1291,10 +1344,13 @@ public class Unit {
 	 *         The given destination is not a valid destination for any
 	 *         unit.
 	 *       | ! isValidDestination(getDestination())
+	 * @throws	NullPointerException
+	 * 			The destination is not effective.
+	 * 			| destination == null
 	 */
 	@Raw @Model
 	private void setDestination(PositionVector destination) 
-			throws IllegalArgumentException {
+			throws IllegalArgumentException, NullPointerException {
 		if (! isValidDestination(destination))
 			throw new IllegalArgumentException();
 		this.destination = destination;
@@ -1347,9 +1403,15 @@ public class Unit {
 	 * 			| if(this.getSprint() == true) {
 	 * 			| 	this.sprint(time) }
 	 * 			| else {this.walk(time)}
+	 * @throws	IllegalArgumentException
+	 * 			Time is negative.
+	 * 			| time < 0
 	 */
 	@Model
-	private void move(double time) {
+	private void move(double time) throws IllegalArgumentException {
+		if (time < 0){
+			throw new IllegalArgumentException();
+		}
 		if(this.getSprint() == true) {
 			this.sprint(time);
 		} else {
@@ -1365,8 +1427,13 @@ public class Unit {
 	 * 			| this.decreaseStamina(sprintTime)
 	 * @effect	If the unit runs out of stamina, it continues by walking for the resting amount of time and sprint mode is turned off.
 	 * 			| this.walk(walkTime)
+	 * @throws	IllegalArgumentException
+	 * 			Time is negative.
+	 * 			| time < 0
 	 */
-	private void sprint(double time) {
+	private void sprint(double time) throws IllegalArgumentException {
+		if (time < 0)
+			throw new IllegalArgumentException();
 		double sprintTime = this.getSprintTime(time);
 		double walkTime = time - sprintTime;
 		if (sprintTime > 0) {
@@ -1422,8 +1489,13 @@ public class Unit {
 	 * @param walkTime The given amount of time.
 	 * @effect	This unit moves for the given time at normal walking speed.
 	 * 			| this.miniMove(walkTime, 1)
+	 * @throws	IllegalArgumentException
+	 * 			The walk time is negative.
+	 * 			| walkTime < 0
 	 */
-	private void walk(double walkTime) {
+	private void walk(double walkTime) throws IllegalArgumentException {
+		if(walkTime < 0)
+			throw new IllegalArgumentException();
 		this.miniMove(walkTime, 1);
 	}
 	
@@ -1447,8 +1519,13 @@ public class Unit {
 	 * 			| this.advanceTime(restingTime)
 	 * @effect	The automatic rest counter is increased with the given amount of time.
 	 * 			| this.increaseAutRestCounter(dt)
+	 * @throws	IllegalArgumentException
+	 * 			Time is negative.
+	 * 			| time < 0
 	 */
-	private void miniMove(double dt, int multiplier) {
+	private void miniMove(double dt, int multiplier) throws IllegalArgumentException {
+		if (dt <0)
+			throw new IllegalArgumentException();
 		double distance = PositionVector.calcDistance(this.getUnitPosition(), this.getNextPosition());
 		double speed = PositionVector.calcDistance((new PositionVector(0,0,0)), this.getCurrentVelocity());
 		double travelTime = distance/speed;
@@ -1580,9 +1657,14 @@ public class Unit {
 	 * 			| this.setActivityStatus("work")
 	 * @effect	This unit's work time is reset.
 	 * 			| this.resetWorkTime()
+	 * @throws	IllegalStateException
+	 * 			This unit is attacking.
+	 * 			| this.getActivityStaus().equals("attack")
 	 */
 	@Raw
-	public void work() {
+	public void work() throws IllegalStateException {
+		if(this.getActivityStatus().equals("attack"))	
+				throw new IllegalStateException();
 		this.setActivityStatus("work");
 		this.resetWorkTime();
 	}
@@ -1606,9 +1688,14 @@ public class Unit {
 	 * 			| 	this.advanceTime(restingTime)}
 	 * @effect	The automatic rest counter is increased with the given amount of time.
 	 * 			| this.increaseAutRestCounter(time)
+	 * @throws	IllegalArgumentException
+	 * 			Time is negative.
+	 * 			| time < 0
 	 */
 	@Model
-	private void doWork(double time) {
+	private void doWork(double time) throws IllegalArgumentException {
+		if (time < 0)
+			throw new IllegalArgumentException();
 		if (this.getWorkTime() < time) {
 			 double restingTime = time - this.getWorkTime();
 			 this.setWorkTime(0);
@@ -1641,8 +1728,14 @@ public class Unit {
 	 * @throws	IllegalStateException
 	 * 			This unit is already attacking.
 	 * 			| (this.getActivityStatus().equals("attack"))
+	 * @throws	IllegalArgumentException
+	 * 			The target is not in an adjacent cube of this unit.
+	 * 			| this.isValidAdjacent(target.getUnitPosition())
+	 * @throws	NullPointerException
+	 * 			The target is not effective.
+	 * 			| target == null
 	 */
-	public void attack(Unit target) throws IllegalStateException, IllegalArgumentException {
+	public void attack(Unit target) throws IllegalStateException, IllegalArgumentException, NullPointerException {
 		if ((this.getActivityStatus().equals("attack"))) {
 			throw new IllegalStateException();
 		}
@@ -1675,9 +1768,14 @@ public class Unit {
 	 * 			| 	this.setAttackTime(this.getAttackTime() - time)}
 	 * @effect	The automatic rest counter is increased with the given amount of time.
 	 * 			| this.increaseAutRestCounter(time)
+	 * @throws	IllegalArgumentException
+	 * 			Time is negative.
+	 * 			| time < 0
 	 */
 	@Model
-	private void doAttack(double time) {
+	private void doAttack(double time) throws IllegalArgumentException {
+		if (time < 0)
+			throw new IllegalArgumentException();
 		if (this.getAttackTime() < time) {
 			 double restingTime = time - this.getAttackTime();
 			 this.setAttackTime(0);
@@ -1773,8 +1871,11 @@ public class Unit {
 	 * 			| 	if(enemy.getStrength() > this.getCurrentHP()) {
 	 *			|		this.decreaseHP(this.getCurrentHP())}
 	 *			| else{ this.decreaseHP(enemy.getStrength())}
+	 *@throws	NullPointerException
+	 *			The enemy is not effective.
+	 *			| enemy == null
 	 */
-	public void defend(Unit enemy) {
+	public void defend(Unit enemy) throws NullPointerException {
 		this.setMinRestCounter(0);
 		this.setActivityStatus("default");
 		this.setOrientation(Math.atan2((enemy.getUnitPosition().getYArgument() - this.getUnitPosition().getYArgument()),
@@ -1800,9 +1901,12 @@ public class Unit {
 	 * @param enemy	The given enemy.
 	 * @return	True if and only if this unit made it by chance (according to given formula).
 	 * 		| result == (new Random()).nextDouble() <= (0.20*(this.getAgility()/enemy.getAgility()))
+	 * @throws	NullPointerException
+	 * 			The enemy is not effective.
+	 * 			| enemy == null
 	 */
 	@Model
-	private boolean dodge(Unit enemy) {
+	private boolean dodge(Unit enemy) throws NullPointerException {
 		double chance = 0.20*(this.getAgility()/enemy.getAgility());
 		Random generator = new Random();
 		double random = generator.nextDouble();
@@ -1848,9 +1952,12 @@ public class Unit {
 	 * @param enemy	The given enemy.
 	 * @return	True if and only if this unit made it by chance (according to given formula).
 	 * 			| result == (new Random()).nextDouble() <= 0.25*((this.getStrength() + this.getAgility())/(enemy.getStrength() + enemy.getAgility()))
+	 * @throws	NullPointerException
+	 * 			The enemy is not effective.
+	 * 			| enemy == null
 	 */
 	@Model
-	private boolean block(Unit enemy) {
+	private boolean block(Unit enemy) throws NullPointerException {
 		double chance = 0.25*((this.getStrength() + this.getAgility())/(enemy.getStrength() + enemy.getAgility()));
 		Random generator = new Random();
 		double random = generator.nextDouble();
@@ -1880,7 +1987,7 @@ public class Unit {
 	 * 			| this.resetMinRestCounter()
 	 * @effect	The automatic rest counter is reset.
 	 * 			| this.resetAutRestCounter()
-	 * @throws	IllegalModelException
+	 * @throws	IllegalStateException
 	 * 			The unit is in combat or is moving to an adjacent cube.
 	 * 			| (this.getActivityStatus() == "attack") || ( (this.getActivityStatus() == "move") &&
 	 * 			|														this.getUnitPosition() != this.getNextPosition())
@@ -2208,7 +2315,7 @@ public class Unit {
 	 * @param time	The given amount of time.
 	 * @effect	The automatic rest counter is set at the sum of the old time and the given time.
 	 * 			| this.setAutRestCounter(this.getAutRestCounter() + time)
-	 * @throws IllegalArgumentException
+	 * @throws 	IllegalArgumentException
 	 * 			The given time is negative.
 	 * 			| (time < 0)
 	*/
@@ -2292,7 +2399,7 @@ public class Unit {
 	 *			|  	this.rest()
 	 */
 	@Raw
-	private void randomBehaviour() throws IllegalArgumentException{
+	private void randomBehaviour() throws IllegalArgumentException {
 		Random generator = new Random();
 		int action = generator.nextInt(3);
 		if (action == 0){
